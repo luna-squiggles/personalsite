@@ -63,3 +63,8 @@ header {
     text-transform: none;
     white-space: normal;
 }
+
+::selection {
+    color: #fff;
+    background-color: #b9a186;
+}
