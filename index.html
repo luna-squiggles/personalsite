@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" style=background: #D3A588>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="description" content="Luna's website :)">
+    <meta name="keywords" content="Luna, Mustfa, Luna Mustfa, blog, portfolio, portfolio website, website, landing page">
+    <meta name="author" content="Luna Mustfa">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    
+    <title>Luna Mustfa</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,400i,700,700i%7cWork+Sans:400,500,700%7cPT+Serif:400i,500i,700i" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=IBM+Plex+Mono' rel="stylesheet">
+</head>
+    
+    
+<body>
+    <main>
+        <section>
+            <div class="container">
+                <header>Hiya, I'm Luna ✨</header>
+                <p>There's lots of things I enjoy~ maybe you like <a href='.'><span id="word"></span></a><span id="emoji"></span> too?
+                <br><br>
+                If you fancy you can check out my <a href='https://blog.lunamustfa.com/'>blog</a> 🖋️, my <a href='https://portfolio.lunamustfa.com/'>portfolio</a> 📸, or my <a href='https://drive.google.com/file/d/1tTgGVUC_biwVTSNiLdB0oNkB-WzXFzJX/view?usp=sharing'>cv</a> 📄, or perhaps just email me at <a href="mailto:lunamustfa@gmail.com">lunamustfa@gmail.com</a> 🥰</p>
+            </div>
+        </section>
+
+        <script>
+            if (typeof(Storage) !== "undefined") {
+                var word = [
+                    'dressmaking',
+                    'knitting',
+                    'making music',
+                    'photography',
+                    'figure skating',
+                    'classical guitar',
+                    'sailing',
+                    'writing',
+                    'playing the piano'
+                    
+                ];
+
+                if (!localStorage.wordIndex) {
+                    localStorage.wordIndex = 0;
+                } else {
+                    localStorage.wordIndex = (localStorage.wordIndex >= (word.length - 1)) ? 0 : parseInt(localStorage.wordIndex) + 1;
+                }
+
+                document.getElementById('word').innerHTML = word[localStorage.wordIndex];
+            } else {
+                
+            }
+        </script>
+
+        
+        <script>
+            if (typeof(Storage) !== "undefined") {
+                var emoji = [
+                    ' 🪡',
+                    ' 🧶',
+                    ' 🎼',
+                    ' 📷',
+                    ' ⛸️',
+                    ' 🎵',
+                    ' ⛵',
+                    ' 🖊️',
+                    ' 🎹'
+                ];
+
+                if (!localStorage.emojiIndex) {
+                    localStorage.emojiIndex = 0;
+                } else {
+                    localStorage.emojiIndex = (localStorage.emojiIndex >= (emoji.length - 1)) ? 0 : parseInt(localStorage.emojiIndex) + 1;
+                }
+
+                document.getElementById('emoji').innerHTML = emoji[localStorage.emojiIndex];
+            } else {
+                
+            }
+        </script>
+    </main>
+</body>
+</html>
