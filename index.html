@@ -30,59 +30,7 @@
             </div>
         </section>
 
-        <script>
-            if (typeof(Storage) !== "undefined") {
-                var word = [
-                    'dressmaking',
-                    'knitting',
-                    'making music',
-                    'photography',
-                    'figure skating',
-                    'classical guitar',
-                    'sailing',
-                    'writing',
-                    'playing the piano'
-                    
-                ];
-
-                if (!localStorage.wordIndex) {
-                    localStorage.wordIndex = 0;
-                } else {
-                    localStorage.wordIndex = (localStorage.wordIndex >= (word.length - 1)) ? 0 : parseInt(localStorage.wordIndex) + 1;
-                }
-
-                document.getElementById('word').innerHTML = word[localStorage.wordIndex];
-            } else {
-                
-            }
-        </script>
-
-        
-        <script>
-            if (typeof(Storage) !== "undefined") {
-                var emoji = [
-                    ' 🪡',
-                    ' 🧶',
-                    ' 🎼',
-                    ' 📷',
-                    ' ⛸️',
-                    ' 🎵',
-                    ' ⛵',
-                    ' 🖊️',
-                    ' 🎹'
-                ];
-
-                if (!localStorage.emojiIndex) {
-                    localStorage.emojiIndex = 0;
-                } else {
-                    localStorage.emojiIndex = (localStorage.emojiIndex >= (emoji.length - 1)) ? 0 : parseInt(localStorage.emojiIndex) + 1;
-                }
-
-                document.getElementById('emoji').innerHTML = emoji[localStorage.emojiIndex];
-            } else {
-                
-            }
-        </script>
+        <script src="interests.js"></script>
     </main>
 </body>
 </html>
