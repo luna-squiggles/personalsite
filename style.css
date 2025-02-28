@@ -68,3 +68,32 @@ header {
     color: #fff;
     background-color: #b9a186;
 }
+
+@media screen and (max-width: 768px) {
+    .container {
+        width: 85%;
+        padding: 0 10px;
+    }
+    
+    section {
+        padding: 100px 0;
+    }
+    
+    body {
+        font-size: 18px;
+    }
+    
+    header {
+        font-size: 32px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .container {
+        width: 90%;
+    }
+    
+    section {
+        padding: 80px 0;
+    }
+}
