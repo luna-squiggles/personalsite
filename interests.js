@@ -1,17 +1,16 @@
 const words = [
-    'dressmaking',
+    'writing good code',
     'knitting',
-    'making music',
+    'producing music',
     'photography',
     'figure skating',
     'classical guitar',
     'sailing',
     'writing',
-    'playing the piano'
 ];
 
 const emojis = [
-    ' 🪡',
+    ' 👾',
     ' 🧶',
     ' 🎼',
     ' 📷',
@@ -19,7 +18,6 @@ const emojis = [
     ' 🎵',
     ' ⛵',
     ' 🖊️',
-    ' 🎹'
 ];
 
 let wordIndex = parseInt(localStorage.getItem('wordIndex') || 0);
