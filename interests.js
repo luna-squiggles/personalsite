@@ -3,10 +3,10 @@ const words = [
     'knitting',
     'producing music',
     'photography',
+    'writing',
     'figure skating',
     'classical guitar',
     'sailing',
-    'writing',
 ];
 
 const emojis = [
@@ -14,10 +14,10 @@ const emojis = [
     ' 🧶',
     ' 🎼',
     ' 📷',
+    ' 🖊️',
     ' ⛸️',
     ' 🎵',
     ' ⛵',
-    ' 🖊️',
 ];
 
 let wordIndex = parseInt(localStorage.getItem('wordIndex') || 0);
