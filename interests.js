@@ -1,54 +1,82 @@
-const words = [
-    'writing good code',
-    'knitting',
-    'producing music',
-    'photography',
-    'writing',
-    'figure skating',
-    'classical guitar',
-    'sailing',
+// Cache DOM elements and constants
+const INTERESTS = [
+    { text: 'writing good code', emoji: ' 👾' },
+    { text: 'knitting', emoji: ' 🧶' },
+    { text: 'producing music', emoji: ' 🎼' },
+    { text: 'photography', emoji: ' 📷' },
+    { text: 'writing', emoji: ' 🖊️' },
+    { text: 'figure skating', emoji: ' ⛸️' },
+    { text: 'classical guitar', emoji: ' 🎵' },
+    { text: 'sailing', emoji: ' ⛵' }
 ];
 
-const emojis = [
-    ' 👾',
-    ' 🧶',
-    ' 🎼',
-    ' 📷',
-    ' 🖊️',
-    ' ⛸️',
-    ' 🎵',
-    ' ⛵',
+const LOCATIONS = [
+    { text: 'GAIL\'s Blackfriars', emoji: ' 🍞', prefix: 'at ' },
+    { text: 'The National Gallery', emoji: ' 🖼️', prefix: 'at ' },
+    { text: 'drinking a mocha', emoji: ' 🍫', prefix: '' },
+    { text: 'Derby Gate Library', emoji: ' 📚', prefix: 'at ' },
+    { text: 'Tate Modern', emoji: ' 🎨', prefix: 'at ' }
 ];
 
-let wordIndex = parseInt(localStorage.getItem('wordIndex') || 0);
-let emojiIndex = parseInt(localStorage.getItem('emojiIndex') || 0);
+// Cache DOM elements
+const wordElement = document.getElementById('word');
+const emojiElement = document.getElementById('emoji');
+const wordLink = document.querySelector('a[href="."]');
+const locationElement = document.getElementById('location');
+const locationEmojiElement = document.getElementById('location-emoji');
+const locationLink = document.querySelector('a[href="#"]');
+const locationPrefixElement = document.getElementById('location-prefix');
 
-function updateDisplay() {
-    document.getElementById('word').innerHTML = words[wordIndex];
-    document.getElementById('emoji').innerHTML = emojis[emojiIndex];
-    
-    localStorage.setItem('wordIndex', wordIndex);
-    localStorage.setItem('emojiIndex', emojiIndex);
-}
+// Get or initialise indices from localStorage
+let currentIndex = parseInt(localStorage.getItem('interestIndex') || 0);
+let locationIndex = parseInt(localStorage.getItem('locationIndex') || 0);
 
-function cycleWords() {
-    wordIndex = (wordIndex >= (words.length - 1)) ? 0 : wordIndex + 1;
-    emojiIndex = (emojiIndex >= (emojis.length - 1)) ? 0 : emojiIndex + 1;
+// Update display with current interest
+const updateDisplay = () => {
+    const { text, emoji } = INTERESTS[currentIndex];
+    wordElement.textContent = text;
+    emojiElement.textContent = emoji;
+    localStorage.setItem('interestIndex', currentIndex);
+};
+
+// Update display with current location
+const updateLocationDisplay = () => {
+    const { text, emoji, prefix } = LOCATIONS[locationIndex];
+    locationPrefixElement.textContent = prefix;
+    locationElement.textContent = text;
+    locationEmojiElement.textContent = emoji;
+    localStorage.setItem('locationIndex', locationIndex);
+};
+
+// Cycle to next interest
+const cycleInterests = (event) => {
+    if (event) event.preventDefault();
+    currentIndex = (currentIndex + 1) % INTERESTS.length;
     updateDisplay();
-    return false;
-}
+};
 
-document.addEventListener('DOMContentLoaded', function() {
-    wordIndex = (wordIndex >= (words.length - 1)) ? 0 : wordIndex + 1;
-    emojiIndex = (emojiIndex >= (emojis.length - 1)) ? 0 : emojiIndex + 1;
+// Cycle to next location
+const cycleLocations = (event) => {
+    if (event) event.preventDefault();
+    locationIndex = (locationIndex + 1) % LOCATIONS.length;
+    updateLocationDisplay();
+};
+
+// Initialise on DOM content loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Move to next interest on load
+    currentIndex = (currentIndex + 1) % INTERESTS.length;
+    locationIndex = (locationIndex + 1) % LOCATIONS.length;
     
-    const wordLink = document.querySelector('a[href="."]');
+    // Add click handlers if links exist
     if (wordLink) {
-        wordLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            cycleWords();
-        });
+        wordLink.addEventListener('click', cycleInterests);
+    }
+    if (locationLink) {
+        locationLink.addEventListener('click', cycleLocations);
     }
     
+    // Initial display
     updateDisplay();
+    updateLocationDisplay();
 });
