@@ -1,0 +1,4 @@
+# Static HTML from the repo root. Turn off legacy prerendering in the Netlify
+# UI: Site configuration → Build & deploy → Post processing → Prerendering.
+[build]
+  publish = "."
