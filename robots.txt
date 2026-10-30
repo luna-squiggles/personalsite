@@ -1,5 +1,3 @@
 User-agent: *
 Allow: /
-Disallow: /og-image-fb.jpg
-Disallow: /og-image.jpg
-Sitemap: https://lunamustfa.com/sitemap.xml 
+Sitemap: https://lunamustfa.com/sitemap.xml

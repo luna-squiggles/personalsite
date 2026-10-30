@@ -10,6 +10,14 @@ const INTERESTS = [
     { text: 'sailing', emoji: ' ⛵' }
 ];
 
+const ROLES = [
+    { text: 'designer', emoji: ' ✏️', prefix: 'a ' },
+    { text: 'filmmaker', emoji: ' 🎬', prefix: 'a ' },
+    { text: 'artist', emoji: ' 🎨', prefix: 'an ' },
+    { text: 'creative', emoji: ' 💡', prefix: 'a ' },
+    { text: 'musician', emoji: ' 🎶', prefix: 'a ' }
+];
+
 const LOCATIONS = [
     { text: 'GAIL\'s Blackfriars', emoji: ' 🍞', prefix: 'at ' },
     { text: 'The National Gallery', emoji: ' 🖼️', prefix: 'at ' },
@@ -26,10 +34,15 @@ const locationElement = document.getElementById('location');
 const locationEmojiElement = document.getElementById('location-emoji');
 const locationLink = document.querySelector('a[href="#"]');
 const locationPrefixElement = document.getElementById('location-prefix');
+const roleElement = document.getElementById('role');
+const roleEmojiElement = document.getElementById('role-emoji');
+const rolePrefixElement = document.getElementById('role-prefix');
+const roleLink = document.querySelector('a[href="#role"]');
 
 // Get or initialise indices from localStorage
 let currentIndex = parseInt(localStorage.getItem('interestIndex') || 0);
 let locationIndex = parseInt(localStorage.getItem('locationIndex') || 0);
+let roleIndex = parseInt(localStorage.getItem('roleIndex') || 0);
 
 // Update display with current interest
 const updateDisplay = () => {
@@ -48,6 +61,15 @@ const updateLocationDisplay = () => {
     localStorage.setItem('locationIndex', locationIndex);
 };
 
+// Update display with current role
+const updateRoleDisplay = () => {
+    const { text, emoji, prefix } = ROLES[roleIndex];
+    rolePrefixElement.textContent = prefix;
+    roleElement.textContent = text;
+    roleEmojiElement.textContent = emoji;
+    localStorage.setItem('roleIndex', roleIndex);
+};
+
 // Cycle to next interest
 const cycleInterests = (event) => {
     if (event) event.preventDefault();
@@ -62,11 +84,19 @@ const cycleLocations = (event) => {
     updateLocationDisplay();
 };
 
+// Cycle to next role
+const cycleRoles = (event) => {
+    if (event) event.preventDefault();
+    roleIndex = (roleIndex + 1) % ROLES.length;
+    updateRoleDisplay();
+};
+
 // Initialise on DOM content loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Move to next interest on load
     currentIndex = (currentIndex + 1) % INTERESTS.length;
     locationIndex = (locationIndex + 1) % LOCATIONS.length;
+    roleIndex = (roleIndex + 1) % ROLES.length;
     
     // Add click handlers if links exist
     if (wordLink) {
@@ -75,8 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (locationLink) {
         locationLink.addEventListener('click', cycleLocations);
     }
+    if (roleLink) {
+        roleLink.addEventListener('click', cycleRoles);
+    }
     
     // Initial display
     updateDisplay();
     updateLocationDisplay();
+    updateRoleDisplay();
 });
