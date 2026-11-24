@@ -37,16 +37,25 @@
     document.querySelector('.cloth > div').append(back);
     document.body.append(front);
 
-    // The same textures as the cloth's CSS background, as SVG patterns, so the
-    // pinched patch under each stitch lines up with the cloth around it.
-    const weave = window.CLOTH_WEAVE || { url: 'texture/weave.svg', size: 416 };
-    const PATTERNS = '<defs>' + [
-        ['weave', weave.size, weave.url], ['slub', 730], ['mottle', 1130], ['fibre', 240],
-    ].map(([name, size, url = `texture/${name}.svg`]) =>
-        `<pattern id="cloth-${name}" patternUnits="userSpaceOnUse" width="${size}" height="${size}">` +
-        `<image href="${url}" width="${size}" height="${size}"/></pattern>`).join('') +
-        '<radialGradient id="cloth-dip"><stop offset="0" stop-color="#5e5043" stop-opacity="0.09"/>' +
-        '<stop offset="1" stop-color="#5e5043" stop-opacity="0"/></radialGradient></defs>';
+    // The same layers as the cloth (cloth.js), as SVG patterns, so the pulled
+    // patch under each motif matches the cloth around it.
+    const LAYERS = ['weave', 'slub', 'mottle', 'fibre'];
+    function patterns() {
+        const weave = window.CLOTH_WEAVE || { url: 'texture/weave.svg', size: 416 };
+        const tiles = { weave: [weave.url, weave.size], slub: ['texture/slub.svg', 730], mottle: ['texture/mottle.svg', 1130], fibre: ['texture/fibre.svg', 240] };
+        return '<defs>' + LAYERS.map((name) => {
+            const [url, size] = tiles[name];
+            return `<pattern id="cloth-${name}" patternUnits="userSpaceOnUse" width="${size}" height="${size}">` +
+                `<image href="${url}" width="${size}" height="${size}"/></pattern>`;
+        }).join('') +
+            '<radialGradient id="cloth-dip"><stop offset="0" stop-color="#5e5043" stop-opacity="0.09"/>' +
+            '<stop offset="1" stop-color="#5e5043" stop-opacity="0"/></radialGradient></defs>';
+    }
+    function layerRects(area) {
+        const s = (window.Cloth && window.Cloth.settings) || {};
+        return `<rect ${area} fill="${s.paper || '#FBF7F2'}"/>` + LAYERS.map((name) =>
+            `<rect ${area} fill="url(#cloth-${name})" style="opacity:${s[name + 'Opacity'] ?? 1};mix-blend-mode:${s[name + 'Blend'] || 'normal'}"/>`).join('');
+    }
 
     const f = (n) => n.toFixed(1);
 
@@ -89,12 +98,7 @@
             `<feImage href="${PINCH_MAP}" ${area} preserveAspectRatio="none" result="map"/>` +
             `<feDisplacementMap in="SourceGraphic" in2="map" scale="44" xChannelSelector="R" yChannelSelector="G" result="pulled"/>` +
             `<feComposite in="pulled" in2="map" operator="in"/></filter>` +
-            `<g filter="url(#${id})">` +
-            `<rect ${area} fill="#FBF7F2"/>` +
-            `<rect ${area} fill="url(#cloth-weave)"/>` +
-            `<rect ${area} fill="url(#cloth-slub)"/>` +
-            `<rect ${area} fill="url(#cloth-mottle)"/>` +
-            `<rect ${area} fill="url(#cloth-fibre)"/></g>` +
+            `<g filter="url(#${id})" style="isolation:isolate">` + layerRects(area) + `</g>` +
             `<ellipse cx="${(x0 + x1) / 2}" cy="${(y0 + y1) / 2}" rx="${(x1 - x0) / 2 - margin * 0.3}" ry="${(y1 - y0) / 2 - margin * 0.3}" fill="url(#cloth-dip)"/></g>`;
     }
 
@@ -159,13 +163,16 @@
         const cols = Math.floor(W / CELL);
         const rows = Math.floor(H / CELL);
 
-        const box = document.querySelector('.container').getBoundingClientRect();
+        // keep clear of the heading, the words and the photo (but not the gaps
+        // between them)
         const pad = CELL * 1.5;
-        const top = box.top + window.scrollY - pad, bottom = box.bottom + window.scrollY + pad;
-        const left = box.left - pad, right = box.right + pad;
+        const boxes = [...document.querySelectorAll('.container header, .container p, .photo')].map((el) => {
+            const b = el.getBoundingClientRect();
+            return { top: b.top + window.scrollY - pad, bottom: b.bottom + window.scrollY + pad, left: b.left - pad, right: b.right + pad };
+        });
         const blocked = (c, r) => {
             const x = c * CELL, y = r * CELL;
-            return x + CELL > left && x < right && y + CELL > top && y < bottom;
+            return boxes.some((b) => x + CELL > b.left && x < b.right && y + CELL > b.top && y < b.bottom);
         };
 
         // start motifs only where there's room, so a narrow screen still gets some
@@ -214,7 +221,7 @@
 
         setSize(back, W, clothH);
         setSize(front, W, H);
-        back.innerHTML = PATTERNS + svg;
+        back.innerHTML = patterns() + svg;
         front.innerHTML = runningStitch(rand);
     }
 
@@ -259,4 +266,5 @@
     document.fonts && document.fonts.ready.then(redraw);
     window.addEventListener('load', redraw);
     window.addEventListener('resize', redraw);
+    window.addEventListener('clothchange', redraw);
 })();
