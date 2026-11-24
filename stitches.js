@@ -45,7 +45,8 @@
 
     const f = (n) => n.toFixed(1);
 
-    // A needle hole: a small, slightly ragged prick, never a perfect circle.
+    // A needle hole, about as wide as the thread that went through it, and
+    // slightly ragged, never a perfect circle.
     // On the cloth it's dark with a light, raised edge; on the photo it's pale,
     // where the print's paper shows through. The raggedness comes from the
     // hole's position, so a hole always looks the same.
@@ -69,9 +70,9 @@
     }
     function hole(x, y, onPhoto) {
         return onPhoto
-            ? `<path d="${blob(x, y, 1.15)}" fill="#fffaf0" fill-opacity="0.45"/>`
-            : `<path d="${blob(x + 0.2, y + 0.6, 1.7)}" fill="#fff" fill-opacity="0.5"/>` +
-              `<path d="${blob(x, y, 1.2)}" fill="#4a3f35" fill-opacity="0.32"/>`;
+            ? `<path d="${blob(x, y, 1.75)}" fill="#fffaf0" fill-opacity="0.62"/>`
+            : `<path d="${blob(x + 0.3, y + 0.8, 2.9)}" fill="#fff" fill-opacity="0.6"/>` +
+              `<path d="${blob(x, y, 2.2)}" fill="#4a3f35" fill-opacity="0.42"/>`;
     }
     // the four holes a cross stitch leaves behind
     function crossHoles(c, r, oy) {
@@ -228,8 +229,8 @@
 
     // A running stitch round the photo, sewn by hand: each stitch a slightly
     // different length and angle, and the line drifting a little in and out.
-    // Click it to pull the whole thread out, stitch by stitch, from there.
-    let photoUnpicked = false;
+    // Click it to pull a few stitches out from there, leaving their holes.
+    const photoPulled = new Set(); // which stitches are out; survives redraws
     function runningStitch(rand) {
         const photo = document.querySelector('.photo');
         if (!photo) return '';
@@ -255,52 +256,53 @@
                 t += len + 5 + rand() * 4;
             }
         }
-        // once pulled, only the holes the thread went through are left
-        if (photoUnpicked) {
-            return '<g class="holes">' + stitches.map((d) => {
-                const [x0, y0, x1, y1] = d.slice(1).split('L').flatMap((pt) => pt.split(' ').map(Number));
-                return hole(x0, y0, true) + hole(x1, y1, true);
-            }).join('') + '</g>';
-        }
-        return `<g class="running"><g class="thread" filter="url(#thread)">` +
-            stitches.map((d, n) => `<path data-n="${n}" stroke="${colour}" d="${d}"/>`).join('') +
+        // pulled stitches leave only the holes the thread went through
+        const pricks = stitches.map((d, n) => {
+            if (!photoPulled.has(n)) return '';
+            const [x0, y0, x1, y1] = d.slice(1).split('L').flatMap((pt) => pt.split(' ').map(Number));
+            return hole(x0, y0, true) + hole(x1, y1, true);
+        }).join('');
+        return `<g class="holes">${pricks}</g><g class="running"><g class="thread" filter="url(#thread)">` +
+            stitches.map((d, n) => photoPulled.has(n) ? '' : `<path data-n="${n}" stroke="${colour}" d="${d}"/>`).join('') +
             `</g><path class="running-hit" d="M${f(x0)} ${f(y0)}H${f(x1)}V${f(y1)}H${f(x0)}Z"/></g>`;
     }
 
-    // Pull the photo's thread out: starting from the stitch nearest the click,
-    // each stitch in turn runs back through its hole, all the way round.
+    // Pull a few of the photo's stitches out, starting from the one nearest
+    // the click and running on round the photo, one after another.
+    const PULL = 4;
     function pullRunning(e) {
         const group = front.querySelector('.running');
-        if (!group || group.dataset.going) return;
-        group.dataset.going = '1';
-        photoUnpicked = true;
-        const paths = [...group.querySelectorAll('.thread path')];
-        if (calm.matches || !paths[0].animate) { redraw(); return; }
+        if (!group) return;
+        const paths = [...group.querySelectorAll('.thread path')].filter((p) => !p.dataset.going);
+        if (!paths.length) return;
         const pt = front.createSVGPoint();
         pt.x = e.clientX; pt.y = e.clientY;
         const local = pt.matrixTransform(front.getScreenCTM().inverse());
-        let start = 0, best = Infinity;
-        paths.forEach((p, n) => {
+        let first = 0, best = Infinity;
+        paths.forEach((p, k) => {
             const m = p.getPointAtLength(p.getTotalLength() / 2);
             const d = Math.hypot(m.x - local.x, m.y - local.y);
-            if (d < best) { best = d; start = n; }
+            if (d < best) { best = d; first = k; }
         });
-        const count = paths.length;
-        const pricks = document.createElementNS(NS, 'g');
-        pricks.setAttribute('class', 'holes');
-        group.before(pricks);
-        const runs = [];
-        for (let k = 0; k < count; k++) {
-            const p = paths[(start + k) % count];
+        const pricks = front.querySelector('.holes');
+        for (let k = 0; k < Math.min(PULL, paths.length); k++) {
+            const p = paths[(first + k) % paths.length];
+            p.dataset.going = '1';
+            photoPulled.add(+p.dataset.n);
             const length = p.getTotalLength();
             const ends = [p.getPointAtLength(0), p.getPointAtLength(length)];
+            const done = () => {
+                pricks.insertAdjacentHTML('beforeend', ends.map((q) => hole(q.x, q.y, true)).join(''));
+                p.remove();
+            };
+            if (calm.matches || !p.animate) { done(); continue; }
             p.setAttribute('stroke-dasharray', `${length} ${length}`);
-            runs.push(p.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: length }], {
-                duration: 140, delay: k * 14, easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)', fill: 'forwards',
-            }).finished.then(() => pricks.insertAdjacentHTML('beforeend', ends.map((e) => hole(e.x, e.y, true)).join(''))));
+            p.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: length }], {
+                duration: 220, delay: k * 90, easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)', fill: 'forwards',
+            }).finished.then(done);
         }
-        Promise.all(runs).then(() => group.remove());
     }
+
     front.addEventListener('click', (e) => {
         const hanging = e.target.closest('.loose');
         if (hanging) { pullOut(hanging); return; }
@@ -337,10 +339,14 @@
             return boxes.some((b) => x + CELL > b.left && x < b.right && y + CELL > b.top && y < b.bottom);
         };
 
+        // keep clear of the window's edges too (two stitches in, one on phones)
+        const edge = W < 600 ? 1 : 2;
+        const inside = (c, r) => c >= edge && r >= edge && c < cols - edge && r < rows - edge;
+
         // start motifs only where there's room, so a narrow screen still gets some
         const free = [];
         for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) if (!blocked(c, r)) free.push([c, r]);
+            for (let c = 0; c < cols; c++) if (inside(c, r) && !blocked(c, r)) free.push([c, r]);
         }
 
         // Motifs: a straight run of 1 to 4 stitches across, down or diagonal,
@@ -350,7 +356,7 @@
         const DIRECTIONS = [[1, 0], [0, 1], [1, 1], [1, -1]];
         const placed = [];
         const clear = (c, r) => placed.every(([pc, pr]) => Math.max(Math.abs(pc - c), Math.abs(pr - r)) > GAP);
-        const fits = (c, r) => c >= 0 && r >= 0 && c < cols && r < rows && !blocked(c, r) && clear(c, r);
+        const fits = (c, r) => inside(c, r) && !blocked(c, r) && clear(c, r);
         const wanted = Math.max(4, Math.round((free.length * CELL * CELL) / 110000));
         const motifs = [];
 

@@ -109,6 +109,12 @@ body {
     stroke-width: 3.4;
 }
 
+/* an untied cross-stitch thread hangs in the front layer but is the same
+   thread, so it keeps the cross stitches' thickness */
+.stitches--front .loose .thread path {
+    stroke-width: 4.6;
+}
+
 /* each stitch can be clicked to unpick it */
 .stitches .x {
     pointer-events: all;
