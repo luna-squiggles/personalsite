@@ -70,9 +70,9 @@
     }
     function hole(x, y, onPhoto) {
         return onPhoto
-            ? `<path d="${blob(x, y, 1.75)}" fill="#fffaf0" fill-opacity="0.6"/>`
-            : `<path d="${blob(x, y + 0.3, 3)}" fill="#4a3f35" fill-opacity="0.07"/>` +
-              `<path d="${blob(x, y, 2)}" fill="#4a3f35" fill-opacity="0.45"/>`;
+            ? `<path d="${blob(x, y, 1.75)}" fill="#fffaf0" fill-opacity="0.52"/>`
+            : `<path d="${blob(x, y + 0.3, 3)}" fill="#4a3f35" fill-opacity="0.06"/>` +
+              `<path d="${blob(x, y, 2)}" fill="#4a3f35" fill-opacity="0.38"/>`;
     }
     // the four holes a cross stitch leaves behind
     function crossHoles(c, r, oy) {
