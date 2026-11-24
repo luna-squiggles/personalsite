@@ -59,11 +59,11 @@ html {
     mix-blend-mode: multiply;
 }
 
-/* Everything fits on one screen: no scrolling. */
+/* Laid out to fit one screen, but never locked: if a small phone (or big
+   text settings) needs more room, the page simply scrolls. */
 html,
 body {
-    height: 100svh;
-    overflow: hidden;
+    min-height: 100svh;
     overscroll-behavior: none;
 }
 
@@ -167,7 +167,7 @@ header,
    centred in the window. */
 section {
     box-sizing: border-box;
-    height: 100svh;
+    min-height: 100svh;
     padding: clamp(24px, 7svh, 88px) clamp(24px, 6vw, 96px);
     display: flex;
     align-items: center;
@@ -276,7 +276,7 @@ header {
     }
 
     .container {
-        height: 100%;
+        align-self: stretch;
         max-width: 34rem;
         display: flex;
         flex-direction: column;
@@ -299,7 +299,7 @@ header {
 
     .container .photo {
         flex: 1 1 auto;
-        min-height: 80px;
+        min-height: 220px;
         margin-top: clamp(12px, 3svh, 32px);
     }
 
