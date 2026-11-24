@@ -19,8 +19,9 @@
 //   fibre:  fine fibre specks (texture/fibre.svg)
 // The noise tiles are different sizes, so the cloth doesn't visibly repeat.
 //
-// Add ?tune to the address for a panel of controls (tune.js). Settings made
-// there are kept in this browser only and override the defaults below.
+// tune.js is a panel of controls for all of this. It's switched off on the
+// live site and only loads on a local preview with ?tune (see README.md).
+// Settings made there are kept in that browser only.
 //
 // The cloth is a fixed layer (so it can run past the window's edges and fill
 // the overscroll) that slides with the scroll so it moves with the page.
@@ -52,7 +53,8 @@
     const REPEATS = { plain: 2, twill: 3, satin: 5 };
     const NOISE_TILES = { slub: 730, mottle: 1130, fibre: 240 };
 
-    const tuning = /[?&]tune\b/.test(location.search);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+    const tuning = local && /[?&]tune\b/.test(location.search);
     let saved = {};
     if (tuning) {
         try { saved = JSON.parse(localStorage.getItem('clothTune') || '{}'); } catch (e) { saved = {}; }
