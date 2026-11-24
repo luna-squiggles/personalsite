@@ -39,11 +39,12 @@
 
     // The same textures as the cloth's CSS background, as SVG patterns, so the
     // pinched patch under each stitch lines up with the cloth around it.
+    const weave = window.CLOTH_WEAVE || { url: 'texture/weave.svg', size: 416 };
     const PATTERNS = '<defs>' + [
-        ['weave', 416], ['slub', 730], ['mottle', 1130], ['fibre', 240],
-    ].map(([name, size]) =>
+        ['weave', weave.size, weave.url], ['slub', 730], ['mottle', 1130], ['fibre', 240],
+    ].map(([name, size, url = `texture/${name}.svg`]) =>
         `<pattern id="cloth-${name}" patternUnits="userSpaceOnUse" width="${size}" height="${size}">` +
-        `<image href="texture/${name}.svg" width="${size}" height="${size}"/></pattern>`).join('') +
+        `<image href="${url}" width="${size}" height="${size}"/></pattern>`).join('') +
         '<radialGradient id="cloth-dip"><stop offset="0" stop-color="#5e5043" stop-opacity="0.16"/>' +
         '<stop offset="1" stop-color="#5e5043" stop-opacity="0"/></radialGradient></defs>';
 
