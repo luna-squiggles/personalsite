@@ -18,10 +18,11 @@
 //    step with the page; otherwise it's moved here on each scroll.
 (function () {
     // texturize.app's settings (seed 1, thread width 2, spacing 1, satin,
-    // irregularity 0.44, texture noise 0.4) with our own colours, at four
-    // times the scale so the weave suits the cross stitches: each thread and
-    // its gap is 6px on screen, three threads to every 18px stitch, as on
-    // evenweave cloth. The tile is drawn at twice the size it's shown.
+    // irregularity 0.44, texture noise 0.4) with our own colours, but with
+    // thicker threads and a narrower gap so the weave suits the cross
+    // stitches: each thread and its gap is 6px on screen, three threads to
+    // every 18px stitch, as on evenweave cloth. The tile is drawn at twice the
+    // size it's shown.
     const SEED = 1;
     const WIDTH = 10; // thread thickness, in tile pixels
     const SPACING = 2; // gap beside each thread
