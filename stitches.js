@@ -70,15 +70,15 @@
     }
     function hole(x, y, onPhoto) {
         return onPhoto
-            ? `<path d="${blob(x, y, 1.75)}" fill="#fffaf0" fill-opacity="0.62"/>`
-            : `<path d="${blob(x + 0.3, y + 0.8, 2.9)}" fill="#fff" fill-opacity="0.6"/>` +
-              `<path d="${blob(x, y, 2.2)}" fill="#4a3f35" fill-opacity="0.42"/>`;
+            ? `<path d="${blob(x, y, 1.75)}" fill="#fffaf0" fill-opacity="0.6"/>`
+            : `<path d="${blob(x, y + 0.3, 3)}" fill="#4a3f35" fill-opacity="0.07"/>` +
+              `<path d="${blob(x, y, 2)}" fill="#4a3f35" fill-opacity="0.45"/>`;
     }
     // the four holes a cross stitch leaves behind
     function crossHoles(c, r, oy) {
         const x = c * CELL, y = r * CELL + oy;
         const a = x + INSET, b = x + CELL - INSET, top = y + INSET, bottom = y + CELL - INSET;
-        return `<g class="holes">${hole(a, top)}${hole(b, top)}${hole(a, bottom)}${hole(b, bottom)}</g>`;
+        return `<g class="holes" filter="url(#thread)">${hole(a, top)}${hole(b, top)}${hole(a, bottom)}${hole(b, bottom)}</g>`;
     }
 
     // Where a motif draws the cloth tight: a faint dip under it. One plain
@@ -262,7 +262,7 @@
             const [x0, y0, x1, y1] = d.slice(1).split('L').flatMap((pt) => pt.split(' ').map(Number));
             return hole(x0, y0, true) + hole(x1, y1, true);
         }).join('');
-        return `<g class="holes">${pricks}</g><g class="running"><g class="thread" filter="url(#thread)">` +
+        return `<g class="holes" filter="url(#thread)">${pricks}</g><g class="running"><g class="thread" filter="url(#thread)">` +
             stitches.map((d, n) => photoPulled.has(n) ? '' : `<path data-n="${n}" stroke="${colour}" d="${d}"/>`).join('') +
             `</g><path class="running-hit" d="M${f(x0)} ${f(y0)}H${f(x1)}V${f(y1)}H${f(x0)}Z"/></g>`;
     }
@@ -389,7 +389,7 @@
                 if (loose.has(key)) hanging += looseMarkup(key, colour, settled(c, r, oy));
             }
         });
-        const svg = puckers + pricks + threads;
+        const svg = puckers + `<g class="pricks">${pricks}</g>` + threads;
 
         setSize(back, W, clothH);
         setSize(front, W, H);
@@ -414,7 +414,8 @@
         const colour = x.querySelector('.thread path').getAttribute('stroke');
         loose.set(key, colour);
         x.remove();
-        back.insertAdjacentHTML('beforeend', crossHoles(c, r, lastOy));
+        // into the holes layer, under every thread (a neighbour shares holes)
+        back.querySelector('.pricks').insertAdjacentHTML('beforeend', crossHoles(c, r, lastOy));
         relax(m, calm.matches);
         const rope = ropeStart(c, r, lastOy);
         const holder = document.createElementNS(NS, 'g');
