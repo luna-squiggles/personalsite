@@ -11,4 +11,4 @@ python3 -m http.server 8765
 # then open http://localhost:8765/?tune
 ```
 
-Changes show live and stick in that browser. "Copy settings" copies them as JSON; paste them into `DEFAULTS` in `cloth.js` to make them the real thing.
+Changes show live and stick in that browser. The live site doesn't generate anything: it uses a baked weave tile (`texture/weave.webp`) and fixed layer settings in `style.css` (the `.cloth-layer` rules). To make new settings real, use "Download weave" (convert it to WebP and replace `texture/weave.webp`), and copy the strengths and blend modes from "Copy settings" into those CSS rules. Also update `DEFAULTS` at the top of `tune.js` so the panel starts from what's live.

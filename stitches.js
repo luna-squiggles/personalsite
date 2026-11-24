@@ -33,76 +33,42 @@
         svg.setAttribute('aria-hidden', 'true');
         return svg;
     }
-    // The cross stitches are sewn into the cloth layer, so they stay with it
-    // when the page overscrolls; the photo's running stitch moves with the page.
+    // The cross stitches are sewn into the cloth layer; the photo's running
+    // stitch sits above the page.
     const back = makeLayer('');
     const front = makeLayer(' stitches--front');
-    document.querySelector('.cloth > div').append(back);
+    document.querySelector('.cloth').append(back);
     document.body.append(front);
 
-    // The same layers as the cloth (cloth.js), as SVG patterns, so the pulled
-    // patch under each motif matches the cloth around it.
-    const LAYERS = ['weave', 'slub', 'mottle', 'fibre'];
-    function patterns() {
-        const weave = window.CLOTH_WEAVE || { url: 'texture/weave.svg', size: 416 };
-        const tiles = { weave: [weave.url, weave.size], slub: ['texture/slub.svg', 730], mottle: ['texture/mottle.svg', 1130], fibre: ['texture/fibre.svg', 240] };
-        return '<defs>' + LAYERS.map((name) => {
-            const [url, size] = tiles[name];
-            return `<pattern id="cloth-${name}" patternUnits="userSpaceOnUse" width="${size}" height="${size}">` +
-                `<image href="${url}" width="${size}" height="${size}"/></pattern>`;
-        }).join('') +
-            '<radialGradient id="cloth-dip"><stop offset="0" stop-color="#5e5043" stop-opacity="0.09"/>' +
-            '<stop offset="1" stop-color="#5e5043" stop-opacity="0"/></radialGradient></defs>';
-    }
-    function layerRects(area) {
-        const s = (window.Cloth && window.Cloth.settings) || {};
-        return `<rect ${area} fill="${s.paper || '#FBF7F2'}"/>` + LAYERS.map((name) =>
-            `<rect ${area} fill="url(#cloth-${name})" style="opacity:${s[name + 'Opacity'] ?? 1};mix-blend-mode:${s[name + 'Blend'] || 'normal'}"/>`).join('');
-    }
+    const DEFS = '<defs><radialGradient id="cloth-dip"><stop offset="0" stop-color="#5e5043" stop-opacity="0.08"/>' +
+        '<stop offset="1" stop-color="#5e5043" stop-opacity="0"/></radialGradient></defs>';
 
     const f = (n) => n.toFixed(1);
 
-    // A displacement map for pulling cloth in towards a point, drawn once: red
-    // and green carry how far to reach out in x and y (most at mid-radius,
-    // none at the middle or the edge) and alpha fades the patch out at its rim.
-    const PINCH_MAP = (() => {
-        const n = 64, canvas = document.createElement('canvas');
-        canvas.width = canvas.height = n;
-        const ctx = canvas.getContext('2d');
-        const img = ctx.createImageData(n, n);
-        for (let j = 0; j < n; j++) {
-            for (let i = 0; i < n; i++) {
-                const dx = (i + 0.5) / n * 2 - 1, dy = (j + 0.5) / n * 2 - 1;
-                const d = Math.min(1, Math.hypot(dx, dy));
-                const g = (1 - d * d) * (1 - d); // strongest a little way out, none at the rim
-                const k = (i + j * n) * 4;
-                img.data[k] = Math.round((0.5 + 0.5 * dx * g) * 255);
-                img.data[k + 1] = Math.round((0.5 + 0.5 * dy * g) * 255);
-                img.data[k + 2] = 128;
-                img.data[k + 3] = Math.round(Math.min(1, (1 - d) * 2.2) * 255);
-            }
-        }
-        ctx.putImageData(img, 0, 0);
-        return canvas.toDataURL();
-    })();
+    // A needle hole: on the cloth a dark prick with a light, raised edge; on
+    // the photo a pale one, where the print's paper shows through.
+    function hole(x, y, onPhoto) {
+        return onPhoto
+            ? `<circle cx="${f(x)}" cy="${f(y)}" r="1.2" fill="#fffaf0" fill-opacity="0.6"/>`
+            : `<circle cx="${f(x)}" cy="${f(y + 0.5)}" r="1.7" fill="#fff" fill-opacity="0.55"/>` +
+              `<circle cx="${f(x)}" cy="${f(y)}" r="1.15" fill="#4a3f35" fill-opacity="0.45"/>`;
+    }
+    // the four holes a cross stitch leaves behind
+    function crossHoles(c, r, oy) {
+        const x = c * CELL, y = r * CELL + oy;
+        const a = x + INSET, b = x + CELL - INSET, top = y + INSET, bottom = y + CELL - INSET;
+        return `<g class="holes">${hole(a, top)}${hole(b, top)}${hole(a, bottom)}${hole(b, bottom)}</g>`;
+    }
 
-    // The cloth round a motif, drawn again from the same textures and pulled
-    // in towards it, as if the thread were drawing it tight, with a slight dip.
-    // One per motif, drawn under all the thread, so it never smudges a stitch.
+    // Where a motif draws the cloth tight: a faint dip under it. One plain
+    // gradient per motif, drawn under all the thread.
     function pucker(cells, m, oy) {
         const cs = cells.map(([c]) => c), rs = cells.map(([, r]) => r);
-        const margin = CELL * 0.8;
+        const margin = CELL * 0.6;
         const x0 = Math.min(...cs) * CELL - margin, x1 = (Math.max(...cs) + 1) * CELL + margin;
         const y0 = Math.min(...rs) * CELL + oy - margin, y1 = (Math.max(...rs) + 1) * CELL + oy + margin;
-        const area = `x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}"`;
-        const id = 'pinch-' + m;
-        return `<g class="pucker" data-motif="${m}">` +
-            `<filter id="${id}" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" ${area} color-interpolation-filters="sRGB">` +
-            `<feImage href="${PINCH_MAP}" ${area} preserveAspectRatio="none" result="map"/>` +
-            `<feDisplacementMap in="SourceGraphic" in2="map" scale="44" xChannelSelector="R" yChannelSelector="G" result="pulled"/>` +
-            `<feComposite in="pulled" in2="map" operator="in"/></filter>` +
-            `<g filter="url(#${id})" style="isolation:isolate">` + layerRects(area) + `</g>` +
-            `<ellipse cx="${(x0 + x1) / 2}" cy="${(y0 + y1) / 2}" rx="${(x1 - x0) / 2 - margin * 0.3}" ry="${(y1 - y0) / 2 - margin * 0.3}" fill="url(#cloth-dip)"/></g>`;
+        return `<ellipse class="pucker" data-motif="${m}" cx="${(x0 + x1) / 2}" cy="${(y0 + y1) / 2}" ` +
+            `rx="${(x1 - x0) / 2}" ry="${(y1 - y0) / 2}" fill="url(#cloth-dip)"/>`;
     }
 
     function stitch(c, r, colour, oy, m) {
@@ -125,12 +91,24 @@
     const LINKS = 16;
     const ROPE = LEG * 2.4; // both legs, plus the bit on the back
 
-    function ropeStart(c, r, oy) {
+    // Which hole a stitch's thread stays caught in: one of its four corners,
+    // fixed per stitch, so untied stitches don't all hang the same way.
+    function holes(c, r, oy) {
         const x = c * CELL, y = r * CELL + oy;
         const a = x + INSET, b = x + CELL - INSET, top = y + INSET, bottom = y + CELL - INSET;
-        // lay it along the path the thread took: up the first leg, across
-        // the back, down the second, then a little tail
-        const route = [[a, bottom], [b, top], [a, top], [b, bottom], [b + LEG * 0.4, bottom + LEG * 0.25]];
+        const A = [a, bottom], B = [b, top], C = [a, top], D = [b, bottom];
+        // the thread's route through the cross, starting from each corner
+        const routes = [[A, B, C, D], [B, A, D, C], [C, D, A, B], [D, C, B, A]];
+        const h = Math.sin(c * 91.17 + r * 47.53) * 43758.5453;
+        return routes[Math.floor((h - Math.floor(h)) * 4)];
+    }
+
+    function ropeStart(c, r, oy) {
+        // lay it along the path the thread took: one leg, across the back,
+        // the other leg, then a little tail
+        const route = holes(c, r, oy).map((p) => p.slice());
+        const [p3, p4] = [route[2], route[3]];
+        route.push([p4[0] + (p4[0] - p3[0]) * 0.3, p4[1] + (p4[1] - p3[1]) * 0.3]);
         const lengths = route.slice(1).map((p, k) => Math.hypot(p[0] - route[k][0], p[1] - route[k][1]));
         const total = lengths.reduce((m, n) => m + n, 0);
         const pts = [];
@@ -191,15 +169,21 @@
         return d + `L${f(e[0])} ${f(e[1])}`;
     }
 
+    // (the invisible box widens the thread's filter area, which is sized from
+    // its bounding box: a thread hanging straight down would otherwise have its
+    // rough edges cut off flat)
     function looseMarkup(key, colour, d) {
+        const [c, r] = key.split(',').map(Number);
+        const [ax, ay] = holes(c, r, lastOy)[0];
         return `<g class="loose" data-key="${key}"><g class="thread" filter="url(#thread)">` +
+            `<rect x="${ax - 24}" y="${ay - 12}" width="48" height="${ROPE + 24}" fill="none"/>` +
             `<path stroke="${colour}" d="${d}"/></g><path class="loose-hit" d="${d}"/></g>`;
     }
 
     // where an untied thread ends up once it has stopped swinging
     function settled(c, r, oy) {
         const rope = ropeStart(c, r, oy);
-        for (let n = 0; n < 900; n++) step(rope);
+        for (let n = 0; n < 250; n++) step(rope);
         return ropePath(rope.pts);
     }
 
@@ -228,7 +212,7 @@
     let photoUnpicked = false;
     function runningStitch(rand) {
         const photo = document.querySelector('.photo');
-        if (!photo || photoUnpicked) return '';
+        if (!photo) return '';
         const r = photo.getBoundingClientRect();
         const i = 12;
         const x0 = r.left + window.scrollX + i, y0 = r.top + window.scrollY + i;
@@ -251,6 +235,13 @@
                 t += len + 5 + rand() * 4;
             }
         }
+        // once pulled, only the holes the thread went through are left
+        if (photoUnpicked) {
+            return '<g class="holes">' + stitches.map((d) => {
+                const [x0, y0, x1, y1] = d.slice(1).split('L').flatMap((pt) => pt.split(' ').map(Number));
+                return hole(x0, y0, true) + hole(x1, y1, true);
+            }).join('') + '</g>';
+        }
         return `<g class="running"><g class="thread" filter="url(#thread)">` +
             stitches.map((d, n) => `<path data-n="${n}" stroke="${colour}" d="${d}"/>`).join('') +
             `</g><path class="running-hit" d="M${f(x0)} ${f(y0)}H${f(x1)}V${f(y1)}H${f(x0)}Z"/></g>`;
@@ -264,7 +255,7 @@
         group.dataset.going = '1';
         photoUnpicked = true;
         const paths = [...group.querySelectorAll('.thread path')];
-        if (calm.matches || !paths[0].animate) { group.remove(); return; }
+        if (calm.matches || !paths[0].animate) { redraw(); return; }
         const pt = front.createSVGPoint();
         pt.x = e.clientX; pt.y = e.clientY;
         const local = pt.matrixTransform(front.getScreenCTM().inverse());
@@ -275,18 +266,24 @@
             if (d < best) { best = d; start = n; }
         });
         const count = paths.length;
+        const pricks = document.createElementNS(NS, 'g');
+        pricks.setAttribute('class', 'holes');
+        group.before(pricks);
         const runs = [];
         for (let k = 0; k < count; k++) {
             const p = paths[(start + k) % count];
             const length = p.getTotalLength();
+            const ends = [p.getPointAtLength(0), p.getPointAtLength(length)];
             p.setAttribute('stroke-dasharray', `${length} ${length}`);
             runs.push(p.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: length }], {
                 duration: 140, delay: k * 14, easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)', fill: 'forwards',
-            }).finished);
+            }).finished.then(() => pricks.insertAdjacentHTML('beforeend', ends.map((e) => hole(e.x, e.y, true)).join(''))));
         }
         Promise.all(runs).then(() => group.remove());
     }
     front.addEventListener('click', (e) => {
+        const hanging = e.target.closest('.loose');
+        if (hanging) { pullOut(hanging); return; }
         if (e.target.closest('.running')) pullRunning(e);
     });
 
@@ -300,18 +297,17 @@
         const rand = rng(seed); // same pattern on every redraw
         const W = document.body.clientWidth;
         const H = Math.max(document.body.scrollHeight, window.innerHeight);
-        // where the top of the page sits in the cloth layer (a screen down)
-        const cloth = document.querySelector('.cloth');
-        // (rounded to the weave's thread pitch, so stitches sit on its threads)
-        const pitch = (window.CLOTH_WEAVE && window.CLOTH_WEAVE.pitch) || 1;
-        const oy = Math.round(-cloth.getBoundingClientRect().top / pitch) * pitch;
-        const clothH = cloth.firstElementChild.offsetHeight;
+        // the cloth is fixed to the window and the page doesn't scroll, so
+        // stitch, page and cloth coordinates are all the same (and the 18px
+        // stitch grid lands on the weave's 4.5px threads)
+        const oy = 0;
+        const clothH = H;
         const cols = Math.floor(W / CELL);
         const rows = Math.floor(H / CELL);
 
         // keep clear of the heading, the words and the photo (but not the gaps
         // between them)
-        const pad = CELL * 1.5;
+        const pad = W < 600 ? CELL * 0.4 : CELL * 1.5; // tighter on phones, where margins are thin
         const boxes = [...document.querySelectorAll('.container header, .container p, .photo')].map((el) => {
             const b = el.getBoundingClientRect();
             return { top: b.top + window.scrollY - pad, bottom: b.bottom + window.scrollY + pad, left: b.left - pad, right: b.right + pad };
@@ -326,7 +322,6 @@
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) if (!blocked(c, r)) free.push([c, r]);
         }
-        if (!free.length) return;
 
         // Motifs: a straight run of 1 to 4 stitches across, down or diagonal,
         // sometimes turning once. Every motif keeps at least GAP clear cells
@@ -339,7 +334,7 @@
         const wanted = Math.max(4, Math.round((free.length * CELL * CELL) / 110000));
         const motifs = [];
 
-        for (let tries = 0; motifs.length < wanted && tries < wanted * 30; tries++) {
+        for (let tries = 0; free.length && motifs.length < wanted && tries < wanted * 30; tries++) {
             let [c, r] = free[Math.floor(rand() * free.length)];
             let [dc, dr] = DIRECTIONS[Math.floor(rand() * DIRECTIONS.length)];
             const length = 1 + Math.floor(rand() ** 2 * 4);
@@ -357,22 +352,24 @@
         }
 
         lastOy = oy;
-        let puckers = '', threads = '', hanging = '';
+        let puckers = '', threads = '', hanging = '', pricks = '';
         motifs.forEach(({ cells, colour }, m) => {
             const crosses = cells.filter(([c, r]) => !unpicked.has(c + ',' + r) && !loose.has(c + ',' + r));
             if (crosses.length) puckers += pucker(cells, m, oy);
             for (const [c, r] of crosses) threads += stitch(c, r, colour, oy, m);
             for (const [c, r] of cells) {
                 const key = c + ',' + r;
+                if (loose.has(key) || unpicked.has(key)) pricks += crossHoles(c, r, oy);
                 if (loose.has(key)) hanging += looseMarkup(key, colour, settled(c, r, oy));
             }
         });
-        const svg = puckers + threads + hanging;
+        const svg = puckers + pricks + threads;
 
         setSize(back, W, clothH);
         setSize(front, W, H);
-        back.innerHTML = patterns() + svg;
-        front.innerHTML = runningStitch(rand);
+        back.innerHTML = DEFS + svg;
+        // loose threads hang in the front layer, over the photo if they're near it
+        front.innerHTML = runningStitch(rand) + hanging;
     }
 
     // the cloth relaxes once a motif has no crosses left
@@ -391,12 +388,13 @@
         const colour = x.querySelector('.thread path').getAttribute('stroke');
         loose.set(key, colour);
         x.remove();
+        back.insertAdjacentHTML('beforeend', crossHoles(c, r, lastOy));
         relax(m, calm.matches);
         const rope = ropeStart(c, r, lastOy);
         const holder = document.createElementNS(NS, 'g');
-        back.append(holder);
+        front.append(holder);
         holder.outerHTML = looseMarkup(key, colour, calm.matches ? settled(c, r, lastOy) : ropePath(rope.pts));
-        const el = back.querySelector(`.loose[data-key="${key}"]`);
+        const el = front.querySelector(`.loose[data-key="${key}"]`);
         if (!calm.matches) swing(el, rope);
     }
 
@@ -416,23 +414,25 @@
     }
 
     back.addEventListener('click', (e) => {
-        const hanging = e.target.closest('.loose');
-        if (hanging) { pullOut(hanging); return; }
         const x = e.target.closest('.x');
         if (x) untie(x);
     });
 
-    // brushing past a loose thread nudges it, just slightly
-    back.addEventListener('pointerover', (e) => {
-        const el = e.target.closest('.loose');
+    // brushing past a loose thread pushes it the way the pointer is moving;
+    // gravity and damping bring it back to hang
+    let lastX = 0;
+    window.addEventListener('pointermove', (e) => {
+        const dx = e.movementX || e.clientX - lastX;
+        lastX = e.clientX;
+        const el = e.target.closest && e.target.closest('.loose');
         if (!el || el.dataset.going || calm.matches) return;
         const [c, r] = el.dataset.key.split(',').map(Number);
         const rope = el._rope || (() => {
             const fresh = ropeStart(c, r, lastOy);
-            for (let n = 0; n < 900; n++) step(fresh);
+            for (let n = 0; n < 250; n++) step(fresh);
             return fresh;
         })();
-        const push = Math.max(-1.5, Math.min(1.5, (e.movementX || (Math.random() - 0.5) * 2) * 0.15));
+        const push = Math.max(-5, Math.min(5, (dx || (Math.random() - 0.5) * 3) * 0.5));
         rope.pts.forEach((p, n) => { rope.prev[n][0] = p[0] - push * (n / LINKS); });
         swing(el, rope);
     });
@@ -447,5 +447,4 @@
     document.fonts && document.fonts.ready.then(redraw);
     window.addEventListener('load', redraw);
     window.addEventListener('resize', redraw);
-    window.addEventListener('clothchange', redraw);
 })();

@@ -2,11 +2,11 @@
 const INTERESTS = [
     { text: 'writing good code', emoji: ' 👾' },
     { text: 'knitting', emoji: ' 🧶' },
-    { text: 'producing music', emoji: ' 🎼' },
+    { text: 'making music', emoji: ' 🎼' },
     { text: 'photography', emoji: ' 📷' },
     { text: 'writing', emoji: ' 🖊️' },
-    { text: 'figure skating', emoji: ' ⛸️' },
-    { text: 'classical guitar', emoji: ' 🎵' },
+    { text: 'ice skating', emoji: ' ⛸️' },
+    { text: 'guitar', emoji: ' 🎵' },
     { text: 'sailing', emoji: ' ⛵' }
 ];
 
@@ -14,16 +14,15 @@ const ROLES = [
     { text: 'designer', emoji: ' ✏️', prefix: 'a ' },
     { text: 'filmmaker', emoji: ' 🎬', prefix: 'a ' },
     { text: 'artist', emoji: ' 🎨', prefix: 'an ' },
-    { text: 'creative', emoji: ' 💡', prefix: 'a ' },
-    { text: 'musician', emoji: ' 🎶', prefix: 'a ' }
+    { text: 'creative', emoji: ' 💡', prefix: 'a ' }
 ];
 
 const LOCATIONS = [
-    { text: 'GAIL\'s Blackfriars', emoji: ' 🍞', prefix: 'at ' },
     { text: 'The National Gallery', emoji: ' 🖼️', prefix: 'at ' },
-    { text: 'drinking a mocha', emoji: ' 🍫', prefix: '' },
+    { text: 'drinking a pumpkin spice latte', emoji: ' 🎃', prefix: '' },
     { text: 'Derby Gate Library', emoji: ' 📚', prefix: 'at ' },
-    { text: 'Tate Modern', emoji: ' 🎨', prefix: 'at ' }
+    { text: 'Tate Modern', emoji: ' 🎨', prefix: 'at ' },
+    { text: 'Double Black in Cole Valley', emoji: ' ☕', prefix: 'at ' }
 ];
 
 // Cache DOM elements
@@ -40,9 +39,9 @@ const rolePrefixElement = document.getElementById('role-prefix');
 const roleLink = document.querySelector('a[href="#role"]');
 
 // Get or initialise indices from localStorage
-let currentIndex = parseInt(localStorage.getItem('interestIndex') || 0);
-let locationIndex = parseInt(localStorage.getItem('locationIndex') || 0);
-let roleIndex = parseInt(localStorage.getItem('roleIndex') || 0);
+let currentIndex = parseInt(localStorage.getItem('interestIndex') || 0) % INTERESTS.length || 0;
+let locationIndex = parseInt(localStorage.getItem('locationIndex') || 0) % LOCATIONS.length || 0;
+let roleIndex = parseInt(localStorage.getItem('roleIndex') || 0) % ROLES.length || 0;
 
 // Update display with current interest
 const updateDisplay = () => {

@@ -10,32 +10,19 @@ html {
 }
 
 /* The cloth, built like plaintextprint.com's paper: a flat cream ground with
-   the textures laid over it, each blended in at low strength (cloth.js makes
-   the layers and sets their opacity and blend; ?tune opens controls for
-   them). It's a fixed layer that runs a screen past each edge of the window
-   (browsers paint only the plain background colour into the overscroll) and
-   slides with the scroll so it moves with the page. The cross stitches are
-   sewn into it, so they stay with the cloth. */
+   the textures laid over it, each blended in at low strength. All static
+   images, painted once: the weave is a tile baked from the generator in
+   tune.js (texture/weave.webp), the rest are small SVG noise tiles at sizes
+   that never line up, so the cloth doesn't visibly repeat. The cross
+   stitches are sewn into this layer. */
 .cloth {
     position: fixed;
-    left: 0;
-    right: 0;
-    top: -100vh;
-    height: 300vh;
+    inset: 0;
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
-}
-
-.cloth > div {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
     background-color: var(--mainColour);
     isolation: isolate;
-    will-change: transform;
 }
 
 .cloth-layer {
@@ -44,18 +31,32 @@ html {
     background-repeat: repeat;
 }
 
-/* Where the browser can tie an animation to the scroll, it does the
-   sliding itself, in step with the page (cloth.js sets --scroll-max). */
-@supports (animation-timeline: scroll()) {
-    .cloth > div {
-        animation: cloth-scroll linear both;
-        animation-timeline: scroll(root block);
-    }
+.cloth-layer--weave {
+    background-image: url("texture/weave.webp");
+    background-size: 229.5px 229.5px;
+    opacity: 0.22;
+    mix-blend-mode: darken;
+}
 
-    @keyframes cloth-scroll {
-        from { transform: translate3d(0, 0, 0); }
-        to { transform: translate3d(0, calc(-1px * var(--scroll-max, 0)), 0); }
-    }
+.cloth-layer--slub {
+    background-image: url("texture/slub.svg");
+    background-size: 730px 730px;
+    opacity: 0.33;
+    mix-blend-mode: color-burn;
+}
+
+.cloth-layer--mottle {
+    background-image: url("texture/mottle.svg");
+    background-size: 1130px 1130px;
+    opacity: 0.36;
+    mix-blend-mode: multiply;
+}
+
+.cloth-layer--fibre {
+    background-image: url("texture/fibre.svg");
+    background-size: 240px 240px;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
 }
 
 /* Everything fits on one screen: no scrolling. */
@@ -63,6 +64,7 @@ html,
 body {
     height: 100svh;
     overflow: hidden;
+    overscroll-behavior: none;
 }
 
 body {
@@ -84,8 +86,7 @@ body {
 
 /* Cross stitches (stitches.js). The back layer is sewn into the cloth; the
    front one carries the running stitch round the photo. Thread gets the
-   same rough, bled edge as the type (#thread in index.html), and the cloth
-   round each cross is pinched in towards it (#pinch). */
+   same rough, bled edge as the type (#thread in index.html). */
 .stitches {
     position: absolute;
     top: 0;

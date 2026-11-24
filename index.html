@@ -37,8 +37,9 @@
     
     <link rel="stylesheet" href="style.css">
     
-    <link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,400i,700,700i%7cWork+Sans:400,500,700%7cPT+Serif:400i,500i,700i" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=IBM+Plex+Mono' rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 </head>
     
     
@@ -63,12 +64,9 @@
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="rough"/>
             <feGaussianBlur in="rough" stdDeviation="0.5" result="soft"/>
             <feComponentTransfer in="soft" result="bled"><feFuncA type="linear" slope="1.6" intercept="-0.06"/></feComponentTransfer>
-            <feGaussianBlur in="rough" stdDeviation="1.6" result="wide"/>
-            <feComponentTransfer in="wide" result="halo"><feFuncA type="linear" slope="0.25"/></feComponentTransfer>
             <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="9" result="tooth"/>
             <feColorMatrix in="tooth" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 7 -5" result="holes"/>
             <feComposite in="bled" in2="holes" operator="out" result="starved"/>
-            <feMerge><feMergeNode in="halo"/><feMergeNode in="starved"/></feMerge>
         </filter>
         <!-- Fray: the photo's edges eaten into by noise, the middle left untouched. -->
         <filter id="fray" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
@@ -77,7 +75,12 @@
             <feComposite in="SourceGraphic" in2="edge" operator="in"/>
         </filter>
     </svg>
-    <div class="cloth" aria-hidden="true"><div></div></div>
+    <div class="cloth" aria-hidden="true">
+        <div class="cloth-layer cloth-layer--weave"></div>
+        <div class="cloth-layer cloth-layer--slub"></div>
+        <div class="cloth-layer cloth-layer--mottle"></div>
+        <div class="cloth-layer cloth-layer--fibre"></div>
+    </div>
     <main>
         <section>
             <div class="container">
@@ -98,9 +101,13 @@
         </section>
 
         <script src="interests.js"></script>
-        <script src="cloth.js"></script>
         <script src="stitches.js"></script>
-        <script src="highlighter.js"></script>
+        <script>
+            // the cloth tuner (tune.js): local previews only, with ?tune (see README.md)
+            if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]tune\b/.test(location.search)) {
+                document.body.append(Object.assign(document.createElement('script'), { src: 'tune.js' }));
+            }
+        </script>
     </main>
 </body>
 </html>
