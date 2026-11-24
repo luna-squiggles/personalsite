@@ -25,12 +25,13 @@
 // The cloth is a fixed layer (so it can run past the window's edges and fill
 // the overscroll) that slides with the scroll so it moves with the page.
 (function () {
+    // Luna's picks from the ?tune panel
     const DEFAULTS = {
-        paper: '#FBF7F2',
+        paper: '#fffcf5',
         // the weave
         seed: 1,
-        weave: 'satin',
-        threads: 50, // across the tile
+        weave: 'twill',
+        threads: 51, // across the tile
         threadWidth: 7, // tile pixels
         threadSpacing: 2,
         irregularity: 0.6, // 0 to 1: sideways wander
@@ -42,10 +43,10 @@
         weft: '#fbf5ec',
         scale: 0.5, // screen pixels per tile pixel
         // how each layer is laid over the ground
-        weaveOpacity: 0.32, weaveBlend: 'multiply',
-        slubOpacity: 0.5, slubBlend: 'normal',
-        mottleOpacity: 0.5, mottleBlend: 'multiply',
-        fibreOpacity: 0.7, fibreBlend: 'multiply',
+        weaveOpacity: 0.22, weaveBlend: 'darken',
+        slubOpacity: 0.33, slubBlend: 'color-burn',
+        mottleOpacity: 0.36, mottleBlend: 'multiply',
+        fibreOpacity: 0.35, fibreBlend: 'multiply',
     };
     const WEAVE_KEYS = ['seed', 'weave', 'threads', 'threadWidth', 'threadSpacing', 'irregularity', 'noise', 'round', 'uneven', 'gapShade', 'warp', 'weft'];
     const REPEATS = { plain: 2, twill: 3, satin: 5 };
