@@ -118,6 +118,25 @@ body {
     fill: transparent;
 }
 
+/* the photo's running stitch can be clicked to pull it out */
+.stitches .running-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 16;
+    pointer-events: stroke;
+    cursor: pointer;
+}
+
+/* an untied thread, hanging loose: a wide invisible line to catch the pointer */
+.stitches .loose-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 14;
+    stroke-linecap: round;
+    pointer-events: stroke;
+    cursor: pointer;
+}
+
 /* main spans the page width, so let clicks through to the stitches beside
    the text column */
 main {

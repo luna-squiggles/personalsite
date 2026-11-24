@@ -73,7 +73,7 @@
         <!-- Fray: the photo's edges eaten into by noise, the middle left untouched. -->
         <filter id="fray" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
             <feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="2" seed="6" result="noise"/>
-            <feDisplacementMap in="SourceAlpha" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" result="edge"/>
+            <feDisplacementMap in="SourceAlpha" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" result="edge"/>
             <feComposite in="SourceGraphic" in2="edge" operator="in"/>
         </filter>
     </svg>
