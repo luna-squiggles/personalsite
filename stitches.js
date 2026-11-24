@@ -45,13 +45,33 @@
 
     const f = (n) => n.toFixed(1);
 
-    // A needle hole: on the cloth a dark prick with a light, raised edge; on
-    // the photo a pale one, where the print's paper shows through.
+    // A needle hole: a small, slightly ragged prick, never a perfect circle.
+    // On the cloth it's dark with a light, raised edge; on the photo it's pale,
+    // where the print's paper shows through. The raggedness comes from the
+    // hole's position, so a hole always looks the same.
+    function blob(x, y, r) {
+        const n = 7;
+        let h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+        const next = () => { h = Math.sin(h * 1.618 + 0.7) * 43758.5453; return h - Math.floor(h); };
+        const start = next() * 6.283;
+        const pts = Array.from({ length: n }, (_, k) => {
+            const a = start + (k / n) * 6.283, rr = r * (0.7 + next() * 0.6);
+            return [x + Math.cos(a) * rr, y + Math.sin(a) * rr * (0.8 + next() * 0.3)];
+        });
+        // a closed, smoothed outline through the jittered points
+        const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+        let d = `M${f(mid(pts[n - 1], pts[0])[0])} ${f(mid(pts[n - 1], pts[0])[1])}`;
+        for (let k = 0; k < n; k++) {
+            const m = mid(pts[k], pts[(k + 1) % n]);
+            d += `Q${f(pts[k][0])} ${f(pts[k][1])} ${f(m[0])} ${f(m[1])}`;
+        }
+        return d + 'Z';
+    }
     function hole(x, y, onPhoto) {
         return onPhoto
-            ? `<circle cx="${f(x)}" cy="${f(y)}" r="1" fill="#fffaf0" fill-opacity="0.3"/>`
-            : `<circle cx="${f(x)}" cy="${f(y + 0.5)}" r="1.5" fill="#fff" fill-opacity="0.35"/>` +
-              `<circle cx="${f(x)}" cy="${f(y)}" r="1" fill="#4a3f35" fill-opacity="0.2"/>`;
+            ? `<path d="${blob(x, y, 1.15)}" fill="#fffaf0" fill-opacity="0.45"/>`
+            : `<path d="${blob(x + 0.2, y + 0.6, 1.7)}" fill="#fff" fill-opacity="0.5"/>` +
+              `<path d="${blob(x, y, 1.2)}" fill="#4a3f35" fill-opacity="0.32"/>`;
     }
     // the four holes a cross stitch leaves behind
     function crossHoles(c, r, oy) {
