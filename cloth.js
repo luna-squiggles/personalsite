@@ -17,13 +17,17 @@
 //    page. Where CSS scroll-linked animations exist the browser slides it, in
 //    step with the page; otherwise it's moved here on each scroll.
 (function () {
-    const TILE = 512; // pixels in the tile; shown at half that
-    // texturize.app's settings: seed 1, thread width 2, spacing 1, satin,
-    // irregularity 0.44, texture noise 0.4 (our own colours)
+    // texturize.app's settings (seed 1, thread width 2, spacing 1, satin,
+    // irregularity 0.44, texture noise 0.4) with our own colours, at four
+    // times the scale so the weave suits the cross stitches: each thread and
+    // its gap is 6px on screen, three threads to every 18px stitch, as on
+    // evenweave cloth. The tile is drawn at twice the size it's shown.
     const SEED = 1;
-    const WIDTH = 2; // thread thickness, in tile pixels
-    const SPACING = 1; // gap beside each thread
+    const WIDTH = 10; // thread thickness, in tile pixels
+    const SPACING = 2; // gap beside each thread
     const REPEAT = 5; // satin
+    const COUNT = 45; // threads across the tile, a multiple of REPEAT
+    const TILE = COUNT * (WIDTH + SPACING); // 540 tile pixels, shown at 270
     const WARP = [253, 248, 239]; // vertical threads, warm cream
     const WEFT = [249, 242, 230]; // horizontal threads, a shade deeper
     const IRREGULARITY = 0.44 * 2.5; // up to about 2.5px of wander at 1.0
@@ -36,9 +40,8 @@
             return seed / 2147483647;
         };
 
-        let count = Math.round(TILE / (WIDTH + SPACING));
-        count = Math.ceil(count / REPEAT) * REPEAT; // a whole number of weave repeats
-        const cell = TILE / count;
+        const count = COUNT;
+        const cell = WIDTH + SPACING;
 
         // each thread's sideways wander: two slow waves that fit the tile exactly
         const wander = () => {
@@ -60,34 +63,52 @@
         // how far across a thread a point is (0 at its middle, 1 at its edge)
         const across = (offset) => Math.abs(offset - WIDTH / 2) / (WIDTH / 2);
 
-        for (let y = 0; y < TILE; y++) {
-            for (let x = 0; x < TILE; x++) {
-                const i0 = Math.floor(x / cell), j0 = Math.floor(y / cell);
-                const wx = wrap(x - warpWander[i0](y)), wy = wrap(y - weftWander[j0](x));
-                const i = Math.floor(wx / cell), j = Math.floor(wy / cell);
-                const inWarp = wx - i * cell < WIDTH, inWeft = wy - j * cell < WIDTH;
-
-                let colour, shade = 1;
-                if (inWarp && inWeft) {
-                    const warpOnTop = (i * 2 + j) % REPEAT !== 0; // satin: weft up 1 in 5
-                    colour = warpOnTop ? WARP : WEFT;
-                    shade = 1 - 0.15 * across(warpOnTop ? wx - i * cell : wy - j * cell) ** 2;
-                } else if (inWarp) {
-                    colour = WARP;
-                    shade = 1 - 0.15 * across(wx - i * cell) ** 2;
-                } else if (inWeft) {
-                    colour = WEFT;
-                    shade = 1 - 0.15 * across(wy - j * cell) ** 2;
-                } else {
-                    colour = gap;
+        // Lay each thread down along its own wandering path, noting for every
+        // pixel which warp and which weft thread covers it and how far across
+        // that thread it is.
+        const N = TILE * TILE;
+        const warpAt = new Int16Array(N).fill(-1), warpAcross = new Float32Array(N);
+        const weftAt = new Int16Array(N).fill(-1), weftAcross = new Float32Array(N);
+        for (let i = 0; i < count; i++) {
+            for (let t = 0; t < TILE; t++) {
+                const warpLeft = i * cell + warpWander[i](t);
+                const weftTop = i * cell + weftWander[i](t);
+                for (let o = 0; o <= WIDTH; o++) {
+                    const x = Math.floor(warpLeft) + o, offWarp = x + 0.5 - warpLeft;
+                    if (offWarp >= 0 && offWarp < WIDTH) {
+                        const k = wrap(x) + t * TILE;
+                        warpAt[k] = i; warpAcross[k] = across(offWarp);
+                    }
+                    const y = Math.floor(weftTop) + o, offWeft = y + 0.5 - weftTop;
+                    if (offWeft >= 0 && offWeft < WIDTH) {
+                        const k = t + wrap(y) * TILE;
+                        weftAt[k] = i; weftAcross[k] = across(offWeft);
+                    }
                 }
-                shade *= 1 + (rand() * 2 - 1) * GRAIN;
-                const k = (x + y * TILE) * 4;
-                img.data[k] = colour[0] * shade;
-                img.data[k + 1] = colour[1] * shade;
-                img.data[k + 2] = colour[2] * shade;
-                img.data[k + 3] = 255;
             }
+        }
+
+        for (let k = 0; k < N; k++) {
+            const i = warpAt[k], j = weftAt[k];
+            let colour, shade = 1;
+            if (i >= 0 && j >= 0) {
+                const warpOnTop = (i * 2 + j) % REPEAT !== 0; // satin: weft up 1 in 5
+                colour = warpOnTop ? WARP : WEFT;
+                shade = 1 - 0.15 * (warpOnTop ? warpAcross[k] : weftAcross[k]) ** 2;
+            } else if (i >= 0) {
+                colour = WARP;
+                shade = 1 - 0.15 * warpAcross[k] ** 2;
+            } else if (j >= 0) {
+                colour = WEFT;
+                shade = 1 - 0.15 * weftAcross[k] ** 2;
+            } else {
+                colour = gap;
+            }
+            shade *= 1 + (rand() * 2 - 1) * GRAIN;
+            img.data[k * 4] = colour[0] * shade;
+            img.data[k * 4 + 1] = colour[1] * shade;
+            img.data[k * 4 + 2] = colour[2] * shade;
+            img.data[k * 4 + 3] = 255;
         }
         ctx.putImageData(img, 0, 0);
         return canvas.toDataURL();
@@ -95,7 +116,7 @@
 
     try {
         const url = weave();
-        window.CLOTH_WEAVE = { url, size: TILE / 2 };
+        window.CLOTH_WEAVE = { url, size: TILE / 2, pitch: (WIDTH + SPACING) / 2 };
         document.documentElement.style.setProperty('--weave', `url("${url}")`);
         document.documentElement.style.setProperty('--weave-size', `${TILE / 2}px`);
     } catch (e) {

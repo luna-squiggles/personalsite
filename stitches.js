@@ -152,7 +152,9 @@
         const H = Math.max(document.body.scrollHeight, window.innerHeight);
         // where the top of the page sits in the cloth layer (a screen down)
         const cloth = document.querySelector('.cloth');
-        const oy = -cloth.getBoundingClientRect().top;
+        // (rounded to the weave's thread pitch, so stitches sit on its threads)
+        const pitch = (window.CLOTH_WEAVE && window.CLOTH_WEAVE.pitch) || 1;
+        const oy = Math.round(-cloth.getBoundingClientRect().top / pitch) * pitch;
         const clothH = cloth.firstElementChild.offsetHeight;
         const cols = Math.floor(W / CELL);
         const rows = Math.floor(H / CELL);
