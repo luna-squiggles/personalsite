@@ -17,22 +17,25 @@
 //    page. Where CSS scroll-linked animations exist the browser slides it, in
 //    step with the page; otherwise it's moved here on each scroll.
 (function () {
-    // texturize.app's settings (seed 1, thread width 2, spacing 1, satin,
-    // irregularity 0.44, texture noise 0.4) with our own colours, but with
-    // thicker threads and a narrower gap so the weave suits the cross
-    // stitches: each thread and its gap is 6px on screen, three threads to
-    // every 18px stitch, as on evenweave cloth. The tile is drawn at twice the
-    // size it's shown.
+    // Starting from texturize.app's settings (seed 1, satin, irregularity
+    // 0.44, texture noise 0.4) with our own colours. Threads are sized to suit
+    // the cross stitches: each thread and its gap is 4.5px on screen, four
+    // threads to every 18px stitch. Kept soft: pale gaps, gentle rounding, and
+    // each thread a touch lighter or darker than the next and uneven along
+    // its length, like real cotton. The tile is drawn at twice the size it's
+    // shown.
     const SEED = 1;
-    const WIDTH = 10; // thread thickness, in tile pixels
+    const WIDTH = 7; // thread thickness, in tile pixels
     const SPACING = 2; // gap beside each thread
     const REPEAT = 5; // satin
-    const COUNT = 45; // threads across the tile, a multiple of REPEAT
-    const TILE = COUNT * (WIDTH + SPACING); // 540 tile pixels, shown at 270
+    const COUNT = 50; // threads across the tile, a multiple of REPEAT
+    const TILE = COUNT * (WIDTH + SPACING); // 450 tile pixels, shown at 225
     const WARP = [253, 248, 239]; // vertical threads, warm cream
-    const WEFT = [249, 242, 230]; // horizontal threads, a shade deeper
-    const IRREGULARITY = 0.44 * 2.5; // up to about 2.5px of wander at 1.0
-    const GRAIN = 0.4 * 0.12; // up to about 12% brightness grain at 1.0
+    const WEFT = [250, 244, 233]; // horizontal threads, a shade deeper
+    const IRREGULARITY = 0.6 * 2.5; // sideways wander, in tile pixels
+    const GRAIN = 0.5 * 0.12; // fine brightness grain
+    const ROUND = 0.07; // how much darker a thread gets toward its edges
+    const UNEVEN = 0.035; // how much threads vary in shade, between and along
 
     function weave() {
         let seed = SEED;
@@ -53,37 +56,48 @@
         const warpWander = Array.from({ length: count }, wander);
         const weftWander = Array.from({ length: count }, wander);
 
+        // each thread's own shade, drifting slowly along it (slubs and dye)
+        const tone = () => {
+            const base = (rand() * 2 - 1) * UNEVEN;
+            const k1 = 2 + Math.floor(rand() * 5), k2 = 7 + Math.floor(rand() * 9);
+            const p1 = rand() * 6.283, p2 = rand() * 6.283;
+            return (t) => 1 + base + UNEVEN * (0.6 * Math.sin(6.283 * k1 * t / TILE + p1) + 0.4 * Math.sin(6.283 * k2 * t / TILE + p2));
+        };
+        const warpTone = Array.from({ length: count }, tone);
+        const weftTone = Array.from({ length: count }, tone);
+
         const canvas = document.createElement('canvas');
         canvas.width = canvas.height = TILE;
         const ctx = canvas.getContext('2d');
         const img = ctx.createImageData(TILE, TILE);
         // the gaps: a darker, warm mix of both colours (kept warm so the cloth
         // doesn't go grey)
-        const gap = WARP.map((v, k) => (v + WEFT[k]) / 2 * [0.93, 0.91, 0.87][k]);
+        const gap = WARP.map((v, k) => (v + WEFT[k]) / 2 * [0.965, 0.955, 0.935][k]);
         const wrap = (n) => ((n % TILE) + TILE) % TILE;
         // how far across a thread a point is (0 at its middle, 1 at its edge)
         const across = (offset) => Math.abs(offset - WIDTH / 2) / (WIDTH / 2);
 
         // Lay each thread down along its own wandering path, noting for every
-        // pixel which warp and which weft thread covers it and how far across
-        // that thread it is.
+        // pixel which warp and which weft thread covers it and how it's shaded
+        // there (its tone, darker toward its edges).
         const N = TILE * TILE;
-        const warpAt = new Int16Array(N).fill(-1), warpAcross = new Float32Array(N);
-        const weftAt = new Int16Array(N).fill(-1), weftAcross = new Float32Array(N);
+        const warpAt = new Int16Array(N).fill(-1), warpShade = new Float32Array(N);
+        const weftAt = new Int16Array(N).fill(-1), weftShade = new Float32Array(N);
         for (let i = 0; i < count; i++) {
             for (let t = 0; t < TILE; t++) {
                 const warpLeft = i * cell + warpWander[i](t);
                 const weftTop = i * cell + weftWander[i](t);
+                const warpT = warpTone[i](t), weftT = weftTone[i](t);
                 for (let o = 0; o <= WIDTH; o++) {
                     const x = Math.floor(warpLeft) + o, offWarp = x + 0.5 - warpLeft;
                     if (offWarp >= 0 && offWarp < WIDTH) {
                         const k = wrap(x) + t * TILE;
-                        warpAt[k] = i; warpAcross[k] = across(offWarp);
+                        warpAt[k] = i; warpShade[k] = warpT * (1 - ROUND * across(offWarp) ** 2);
                     }
                     const y = Math.floor(weftTop) + o, offWeft = y + 0.5 - weftTop;
                     if (offWeft >= 0 && offWeft < WIDTH) {
                         const k = t + wrap(y) * TILE;
-                        weftAt[k] = i; weftAcross[k] = across(offWeft);
+                        weftAt[k] = i; weftShade[k] = weftT * (1 - ROUND * across(offWeft) ** 2);
                     }
                 }
             }
@@ -95,13 +109,13 @@
             if (i >= 0 && j >= 0) {
                 const warpOnTop = (i * 2 + j) % REPEAT !== 0; // satin: weft up 1 in 5
                 colour = warpOnTop ? WARP : WEFT;
-                shade = 1 - 0.15 * (warpOnTop ? warpAcross[k] : weftAcross[k]) ** 2;
+                shade = warpOnTop ? warpShade[k] : weftShade[k];
             } else if (i >= 0) {
                 colour = WARP;
-                shade = 1 - 0.15 * warpAcross[k] ** 2;
+                shade = warpShade[k];
             } else if (j >= 0) {
                 colour = WEFT;
-                shade = 1 - 0.15 * weftAcross[k] ** 2;
+                shade = weftShade[k];
             } else {
                 colour = gap;
             }

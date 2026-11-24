@@ -175,9 +175,9 @@ header {
     white-space: normal;
 }
 
-/* The photo as a printed cotton patch: the weave runs over it, its edges
-   fray (#fray in index.html), and stitches.js sews it down with a running
-   stitch. */
+/* The photo as a print on paper, sewn onto the cloth: its edges fray
+   (#fray in index.html), a light paper grain sits over it, and stitches.js
+   sews it down with a yellow running stitch. */
 .photo {
     position: relative;
     display: block;
@@ -197,10 +197,10 @@ header {
     inset: 0;
     pointer-events: none;
     background:
-        url("texture/slub.svg") 0 0 / 730px 730px,
-        var(--weave, url("texture/weave.svg")) 0 0 / var(--weave-size, 416px) var(--weave-size, 416px);
+        url("texture/fibre.svg") 0 0 / 240px 240px,
+        url("texture/mottle.svg") 0 0 / 1130px 1130px;
     mix-blend-mode: multiply;
-    opacity: 0.9;
+    opacity: 0.7;
 }
 
 ::selection {
