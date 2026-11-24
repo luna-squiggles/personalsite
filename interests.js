@@ -19,7 +19,7 @@ const ROLES = [
 
 const LOCATIONS = [
     { text: 'The National Gallery', emoji: ' 🖼️', prefix: 'at ' },
-    { text: 'drinking a pumpkin spice latte', emoji: ' 🎃', prefix: '' },
+    { text: 'with a pumpkin spice latte', emoji: ' 🎃', prefix: '' },
     { text: 'Derby Gate Library', emoji: ' 📚', prefix: 'at ' },
     { text: 'Tate Modern', emoji: ' 🎨', prefix: 'at ' },
     { text: 'Double Black in Cole Valley', emoji: ' ☕', prefix: 'at ' }
