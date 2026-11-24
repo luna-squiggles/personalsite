@@ -97,3 +97,11 @@ header {
         padding: 80px 0;
     }
 }
+
+.photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 2.5rem;
+    border-radius: 4px;
+}
