@@ -49,9 +49,9 @@
     // the photo a pale one, where the print's paper shows through.
     function hole(x, y, onPhoto) {
         return onPhoto
-            ? `<circle cx="${f(x)}" cy="${f(y)}" r="1.2" fill="#fffaf0" fill-opacity="0.6"/>`
-            : `<circle cx="${f(x)}" cy="${f(y + 0.5)}" r="1.7" fill="#fff" fill-opacity="0.55"/>` +
-              `<circle cx="${f(x)}" cy="${f(y)}" r="1.15" fill="#4a3f35" fill-opacity="0.45"/>`;
+            ? `<circle cx="${f(x)}" cy="${f(y)}" r="1" fill="#fffaf0" fill-opacity="0.3"/>`
+            : `<circle cx="${f(x)}" cy="${f(y + 0.5)}" r="1.5" fill="#fff" fill-opacity="0.35"/>` +
+              `<circle cx="${f(x)}" cy="${f(y)}" r="1" fill="#4a3f35" fill-opacity="0.2"/>`;
     }
     // the four holes a cross stitch leaves behind
     function crossHoles(c, r, oy) {
