@@ -5,13 +5,12 @@
     --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 
-/* Aida cloth: a 12px weave with a hole at every corner. It's on html so the
-   overscroll shows cloth too. The cross stitches (stitches.js) sit on the
-   same grid, hole to hole. */
+/* Woven cotton, generated from noise (texture/fabric.svg). It's on html so
+   the overscroll shows the cloth too. */
 html {
     background-color: var(--mainColour);
-    background-image: url("texture/aida.svg");
-    background-size: 12px 12px;
+    background-image: url("texture/fabric.svg");
+    background-size: 320px 320px;
     background-position: 0 0;
 }
 
@@ -47,6 +46,16 @@ body {
     stroke-linecap: round;
 }
 
+/* each stitch can be clicked to unpick it (stitches.js) */
+.stitches .x {
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.stitches rect {
+    fill: transparent;
+}
+
 .stitches .shadow {
     stroke: #323031;
     stroke-opacity: 0.28;
@@ -66,9 +75,16 @@ body {
     stroke-dasharray: 1.6 1.4;
 }
 
+/* main spans the page width, so let clicks through to the stitches beside
+   the text column */
 main {
     position: relative;
     z-index: 1;
+    pointer-events: none;
+}
+
+.container {
+    pointer-events: auto;
 }
 
 /* Fibre: fine grain laid over the whole page and multiplied, so the type,
