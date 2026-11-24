@@ -114,3 +114,22 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLocationDisplay();
     updateRoleDisplay();
 });
+
+// Space moves through the choices instead of scrolling: all three at once,
+// or just the one whose link has keyboard focus.
+document.addEventListener('keydown', (event) => {
+    if (event.code !== 'Space' && event.key !== ' ') return;
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+    if (event.target.closest('input, textarea, select, [contenteditable], button')) return;
+    event.preventDefault();
+    if (event.repeat) return;
+    const focused = document.activeElement;
+    if (focused === wordLink) cycleInterests();
+    else if (focused === locationLink) cycleLocations();
+    else if (focused === roleLink) cycleRoles();
+    else {
+        cycleRoles();
+        cycleInterests();
+        cycleLocations();
+    }
+});
