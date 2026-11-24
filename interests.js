@@ -22,7 +22,7 @@ const LOCATIONS = [
     { text: 'pumpkin spice latte', emoji: ' 🎃', prefix: 'with a ' },
     { text: 'Derby Gate Library', emoji: ' 📚', prefix: 'at ' },
     { text: 'Tate Modern', emoji: ' 🎨', prefix: 'at ' },
-    { text: 'Double Black in Cole Valley', emoji: ' ☕', prefix: 'at ' }
+    { text: 'Double Black Cole Valley', emoji: ' ☕', prefix: 'at ' }
 ];
 
 // Cache DOM elements
