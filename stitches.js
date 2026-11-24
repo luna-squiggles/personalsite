@@ -45,7 +45,7 @@
     ].map(([name, size, url = `texture/${name}.svg`]) =>
         `<pattern id="cloth-${name}" patternUnits="userSpaceOnUse" width="${size}" height="${size}">` +
         `<image href="${url}" width="${size}" height="${size}"/></pattern>`).join('') +
-        '<radialGradient id="cloth-dip"><stop offset="0" stop-color="#5e5043" stop-opacity="0.16"/>' +
+        '<radialGradient id="cloth-dip"><stop offset="0" stop-color="#5e5043" stop-opacity="0.09"/>' +
         '<stop offset="1" stop-color="#5e5043" stop-opacity="0"/></radialGradient></defs>';
 
     const f = (n) => n.toFixed(1);

@@ -2,11 +2,12 @@
 //
 // 1. The weave is generated here, on the spot, the way texturize.app's fabric
 //    generator describes doing it: a grid of vertical warp threads and
-//    horizontal weft threads, a whole number of them across the tile (and an
-//    even number, so a plain weave repeats cleanly). Each thread cell holds a
-//    warp strip down its left side and a weft strip along its top; the rest is
-//    a gap, which shows a dark mix of both colours. Where they cross, plain
-//    weave alternates which one is on top like a checkerboard. Threads are
+//    horizontal weft threads, a whole number of them across the tile (rounded
+//    up to a multiple of 5, so the satin weave repeats cleanly). Each thread
+//    cell holds a warp strip down its left side and a weft strip along its
+//    top; the rest is a gap, which shows a darker mix of both colours. Where
+//    they cross, satin puts the weft on top at one crossing in five, in a
+//    scattered step, so the face is mostly smooth warp. Threads are
 //    shaded darker toward their edges so they read as round, wobble sideways a
 //    little, and get a fine grain. The tile is drawn at twice the size it's
 //    shown, so it's crisp on a retina screen, and set as --weave for the CSS.
@@ -17,22 +18,26 @@
 //    step with the page; otherwise it's moved here on each scroll.
 (function () {
     const TILE = 512; // pixels in the tile; shown at half that
-    const WIDTH = 3; // thread thickness, in tile pixels
+    // texturize.app's settings: seed 1, thread width 2, spacing 1, satin,
+    // irregularity 0.44, texture noise 0.4 (our own colours)
+    const SEED = 1;
+    const WIDTH = 2; // thread thickness, in tile pixels
     const SPACING = 1; // gap beside each thread
-    const WARP = [251, 247, 241]; // vertical threads
-    const WEFT = [245, 239, 231]; // horizontal threads
-    const IRREGULARITY = 1.1; // how far threads wander sideways, in tile pixels
-    const GRAIN = 0.07;
+    const REPEAT = 5; // satin
+    const WARP = [253, 248, 239]; // vertical threads, warm cream
+    const WEFT = [249, 242, 230]; // horizontal threads, a shade deeper
+    const IRREGULARITY = 0.44 * 2.5; // up to about 2.5px of wander at 1.0
+    const GRAIN = 0.4 * 0.12; // up to about 12% brightness grain at 1.0
 
     function weave() {
-        let seed = 7;
+        let seed = SEED;
         const rand = () => {
             seed = (seed * 16807) % 2147483647;
             return seed / 2147483647;
         };
 
         let count = Math.round(TILE / (WIDTH + SPACING));
-        count += count % 2; // a whole number of plain-weave repeats
+        count = Math.ceil(count / REPEAT) * REPEAT; // a whole number of weave repeats
         const cell = TILE / count;
 
         // each thread's sideways wander: two slow waves that fit the tile exactly
@@ -48,7 +53,9 @@
         canvas.width = canvas.height = TILE;
         const ctx = canvas.getContext('2d');
         const img = ctx.createImageData(TILE, TILE);
-        const gap = WARP.map((v, k) => (v + WEFT[k]) / 2 * 0.9);
+        // the gaps: a darker, warm mix of both colours (kept warm so the cloth
+        // doesn't go grey)
+        const gap = WARP.map((v, k) => (v + WEFT[k]) / 2 * [0.93, 0.91, 0.87][k]);
         const wrap = (n) => ((n % TILE) + TILE) % TILE;
         // how far across a thread a point is (0 at its middle, 1 at its edge)
         const across = (offset) => Math.abs(offset - WIDTH / 2) / (WIDTH / 2);
@@ -62,7 +69,7 @@
 
                 let colour, shade = 1;
                 if (inWarp && inWeft) {
-                    const warpOnTop = (i + j) % 2 === 0;
+                    const warpOnTop = (i * 2 + j) % REPEAT !== 0; // satin: weft up 1 in 5
                     colour = warpOnTop ? WARP : WEFT;
                     shade = 1 - 0.15 * across(warpOnTop ? wx - i * cell : wy - j * cell) ** 2;
                 } else if (inWarp) {
