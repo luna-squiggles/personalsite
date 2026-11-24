@@ -13,14 +13,15 @@ html {
    up, so the cloth doesn't visibly repeat. Browsers paint only the plain
    background colour into the overscroll, so the cloth is a fixed layer that
    runs a screen past each edge of the window, and cloth.js slides it with
-   the scroll so it moves with the page. */
+   the scroll so it moves with the page. The cross stitches are sewn into
+   this layer, so they stay with the cloth when you overscroll. */
 .cloth {
     position: fixed;
     left: 0;
     right: 0;
     top: -100vh;
     height: 300vh;
-    z-index: -1;
+    z-index: 0;
     overflow: hidden;
     pointer-events: none;
 }
@@ -32,10 +33,25 @@ html {
     right: 0;
     height: 100%;
     background:
+        url("texture/fibre.svg") 0 0 / 240px 240px,
         url("texture/mottle.svg") 0 0 / 1130px 1130px,
         url("texture/slub.svg") 0 0 / 730px 730px,
         url("texture/weave.svg") 0 0 / 416px 416px;
     will-change: transform;
+}
+
+/* Where the browser can tie an animation to the scroll, it does the
+   sliding itself, in step with the page (cloth.js sets --scroll-max). */
+@supports (animation-timeline: scroll()) {
+    .cloth > div {
+        animation: cloth-scroll linear both;
+        animation-timeline: scroll(root block);
+    }
+
+    @keyframes cloth-scroll {
+        from { transform: translate3d(0, 0, 0); }
+        to { transform: translate3d(0, calc(-1px * var(--scroll-max, 0)), 0); }
+    }
 }
 
 body {
@@ -57,9 +73,10 @@ body {
     white-space: normal;
 }
 
-/* Cross stitches (stitches.js). The back layer sits under the text; the
+/* Cross stitches (stitches.js). The back layer is sewn into the cloth; the
    front one carries the running stitch round the photo. Thread gets the
-   same rough, bled edge as the type (#thread in index.html). */
+   same rough, bled edge as the type (#thread in index.html), and the cloth
+   round each cross is pinched in towards it (#pinch). */
 .stitches {
     position: absolute;
     top: 0;
@@ -82,32 +99,13 @@ body {
     stroke-width: 3.4;
 }
 
-/* where the thread pulls the cloth: a dip under the cross and creases
-   running out from its holes */
-.stitches .pucker path {
-    fill: none;
-    stroke-linecap: round;
-}
-
-.stitches .crease {
-    stroke: #5e5043;
-    stroke-opacity: 0.32;
-    stroke-width: 1.8;
-}
-
-.stitches .ridge {
-    stroke: #fff;
-    stroke-opacity: 0.9;
-    stroke-width: 1.6;
-}
-
 /* each stitch can be clicked to unpick it */
 .stitches .x {
     pointer-events: all;
     cursor: pointer;
 }
 
-.stitches rect {
+.stitches .hit {
     fill: transparent;
 }
 
@@ -121,19 +119,6 @@ main {
 
 .container {
     pointer-events: auto;
-}
-
-/* Fibre: fine grain laid over the whole page and multiplied, so the type,
-   the stitches and the photo all sit in the cloth. */
-body::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    background: url("texture/grain.svg") 0 0 / 240px 240px;
-    mix-blend-mode: multiply;
-    opacity: 0.15;
 }
 
 /* Ink bleed on the type (the #ink filter is in index.html). */
