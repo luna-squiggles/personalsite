@@ -5,8 +5,14 @@
     --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 
+/* Aida cloth: a 12px weave with a hole at every corner. It's on html so the
+   overscroll shows cloth too. The cross stitches (stitches.js) sit on the
+   same grid, hole to hole. */
 html {
     background-color: var(--mainColour);
+    background-image: url("texture/aida.svg");
+    background-size: 12px 12px;
+    background-position: 0 0;
 }
 
 body {
@@ -14,7 +20,6 @@ body {
     min-height: 100svh;
     margin: 0;
     overflow-x: clip;
-    background-color: var(--mainColour);
 
     font-family: var(--font-mono);
     -webkit-font-smoothing: antialiased;
@@ -29,18 +34,54 @@ body {
     white-space: normal;
 }
 
-/* Newsprint: halftone dots and grain laid over the whole page and multiplied,
-   so the type and the photo look printed onto the paper. */
+.stitches {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.stitches path {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.stitches .shadow {
+    stroke: #323031;
+    stroke-opacity: 0.28;
+    stroke-width: 4;
+    transform: translate(0.4px, 0.7px);
+}
+
+.stitches .thread {
+    stroke-width: 3.4;
+}
+
+/* the twist of the floss: short light dashes along each leg */
+.stitches .sheen {
+    stroke: #fff;
+    stroke-opacity: 0.4;
+    stroke-width: 1;
+    stroke-dasharray: 1.6 1.4;
+}
+
+main {
+    position: relative;
+    z-index: 1;
+}
+
+/* Fibre: fine grain laid over the whole page and multiplied, so the type,
+   the stitches and the photo all sit in the cloth. */
 body::after {
     content: "";
     position: absolute;
     inset: 0;
+    z-index: 2;
     pointer-events: none;
-    background:
-        url("texture/halftone.svg") 0 0 / 240px 240px,
-        url("texture/grain.svg") 0 0 / 240px 240px;
+    background: url("texture/grain.svg") 0 0 / 240px 240px;
     mix-blend-mode: multiply;
-    opacity: 0.18;
+    opacity: 0.15;
 }
 
 /* Ink bleed on the type (the #ink filter is in index.html). */
@@ -103,9 +144,24 @@ header {
     margin-top: 2.5rem;
 }
 
+/* The browser's own selection is hidden; highlight.js draws a highlighter
+   stroke behind the text instead. */
 ::selection {
-    color: #fff;
-    background-color: #b9a186;
+    color: inherit;
+    background-color: transparent;
+}
+
+.marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+}
+
+.marker path {
+    fill: #FFD166;
 }
 
 @media screen and (max-width: 768px) {
