@@ -5,13 +5,37 @@
     --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 
-/* Woven cotton, generated from noise (texture/fabric.svg). It's on html so
-   the overscroll shows the cloth too. */
 html {
     background-color: var(--mainColour);
-    background-image: url("texture/fabric.svg");
-    background-size: 320px 320px;
-    background-position: 0 0;
+}
+
+/* Woven cotton, generated from noise: three tiles at sizes that never line
+   up, so the cloth doesn't visibly repeat. Browsers paint only the plain
+   background colour into the overscroll, so the cloth is a fixed layer that
+   runs a screen past each edge of the window, and cloth.js slides it with
+   the scroll so it moves with the page. */
+.cloth {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: -100vh;
+    height: 300vh;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.cloth > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background:
+        url("texture/mottle.svg") 0 0 / 1130px 1130px,
+        url("texture/slub.svg") 0 0 / 730px 730px,
+        url("texture/weave.svg") 0 0 / 416px 416px;
+    will-change: transform;
 }
 
 body {
@@ -33,6 +57,9 @@ body {
     white-space: normal;
 }
 
+/* Cross stitches (stitches.js). The back layer sits under the text; the
+   front one carries the running stitch round the photo. Thread gets the
+   same rough, bled edge as the type (#thread in index.html). */
 .stitches {
     position: absolute;
     top: 0;
@@ -41,12 +68,40 @@ body {
     pointer-events: none;
 }
 
-.stitches path {
+.stitches--front {
+    z-index: 1;
+}
+
+.stitches .thread path {
+    fill: none;
+    stroke-width: 4.6;
+    stroke-linecap: round;
+}
+
+.stitches--front .thread path {
+    stroke-width: 3.4;
+}
+
+/* where the thread pulls the cloth: a dip under the cross and creases
+   running out from its holes */
+.stitches .pucker path {
     fill: none;
     stroke-linecap: round;
 }
 
-/* each stitch can be clicked to unpick it (stitches.js) */
+.stitches .crease {
+    stroke: #5e5043;
+    stroke-opacity: 0.32;
+    stroke-width: 1.8;
+}
+
+.stitches .ridge {
+    stroke: #fff;
+    stroke-opacity: 0.9;
+    stroke-width: 1.6;
+}
+
+/* each stitch can be clicked to unpick it */
 .stitches .x {
     pointer-events: all;
     cursor: pointer;
@@ -54,25 +109,6 @@ body {
 
 .stitches rect {
     fill: transparent;
-}
-
-.stitches .shadow {
-    stroke: #323031;
-    stroke-opacity: 0.28;
-    stroke-width: 4;
-    transform: translate(0.4px, 0.7px);
-}
-
-.stitches .thread {
-    stroke-width: 3.4;
-}
-
-/* the twist of the floss: short light dashes along each leg */
-.stitches .sheen {
-    stroke: #fff;
-    stroke-opacity: 0.4;
-    stroke-width: 1;
-    stroke-dasharray: 1.6 1.4;
 }
 
 /* main spans the page width, so let clicks through to the stitches beside
@@ -153,31 +189,37 @@ header {
     white-space: normal;
 }
 
+/* The photo as a printed cotton patch: the weave runs over it, its edges
+   fray (#fray in index.html), and stitches.js sews it down with a running
+   stitch. */
+.photo {
+    position: relative;
+    display: block;
+    margin-top: 2.5rem;
+    filter: url(#fray);
+}
+
 .photo img {
     display: block;
     width: 100%;
     height: auto;
-    margin-top: 2.5rem;
 }
 
-/* The browser's own selection is hidden; highlight.js draws a highlighter
-   stroke behind the text instead. */
-::selection {
-    color: inherit;
-    background-color: transparent;
-}
-
-.marker {
+.photo::after {
+    content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
+    inset: 0;
     pointer-events: none;
+    background:
+        url("texture/slub.svg") 0 0 / 730px 730px,
+        url("texture/weave.svg") 0 0 / 416px 416px;
     mix-blend-mode: multiply;
+    opacity: 0.9;
 }
 
-.marker path {
-    fill: #FFD166;
+::selection {
+    color: #fff;
+    background-color: #b9a186;
 }
 
 @media screen and (max-width: 768px) {
